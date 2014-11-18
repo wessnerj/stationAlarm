@@ -4,5 +4,8 @@
     <string name="app_name">Station Alarm</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="add_location">Add new station</string>
+    <string name="ic_action_new">Add</string>
+    <string name="title_activity_add_location">AddLocationActivity</string>
 
 </resources>
