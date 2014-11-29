@@ -13,6 +13,7 @@ import org.osmdroid.views.overlay.ItemizedIconOverlay;
 import org.osmdroid.views.overlay.Overlay;
 import org.osmdroid.views.overlay.OverlayItem;
 import org.osmdroid.views.overlay.OverlayManager;
+import org.wessner.android.stationAlarm.data.Station;
 
 import android.app.Activity;
 import android.content.Context;
@@ -25,8 +26,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.EditText;
 
-public class AddLocationActivity extends Activity {
+public class AddLocationActivity extends Activity implements OnClickListener {
+	private Location selectedLocation;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,10 +49,10 @@ public class AddLocationActivity extends Activity {
 	    mapController.setZoom(10);
 	    mapController.setCenter(gp);
 	    
-	    final Marker selectedLocation = new Marker(v);
-	    selectedLocation.setAlpha(0);
-	    selectedLocation.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-	    v.getOverlays().add(selectedLocation);
+	    final Marker locationMarker = new Marker(v);
+	    locationMarker.setAlpha(0);
+	    locationMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+	    v.getOverlays().add(locationMarker);
 	    
 	    Overlay touchOverlay = new Overlay(this) {
 			@Override
@@ -59,11 +64,12 @@ public class AddLocationActivity extends Activity {
 		    public boolean onLongPress(MotionEvent e, MapView mapView) {
 				Projection proj = mapView.getProjection();
 				GeoPoint loc = (GeoPoint) proj.fromPixels((int) e.getX(), (int) e.getY());
-				Log.d("Location", "Long: " + loc.getLongitude() + " Lat: " + loc.getLatitude());
+				selectedLocation.setLatitude(loc.getLatitude());
+				selectedLocation.setLongitude(loc.getLongitude());
 				
-				selectedLocation.setTitle("Long: " + loc.getLongitude() + " Lat: " + loc.getLatitude());
-				selectedLocation.setPosition(loc);
-				selectedLocation.setAlpha(1.0f);
+				locationMarker.setTitle("Lat: " + loc.getLatitude() + "\nLon: " + loc.getLongitude());
+				locationMarker.setPosition(loc);
+				locationMarker.setAlpha(1.0f);
 				v.invalidate();
 
 				return true;
@@ -105,5 +111,15 @@ public class AddLocationActivity extends Activity {
 		}
 		
 		return l;
+	}
+
+	@Override
+	public void onClick(View v) {
+		if (v.getId() == R.id.save_button) {
+			Station s = new Station();
+			s.name = ((EditText) findViewById(R.id.name_edit)).getText().toString();
+			s.lat = selectedLocation.getLatitude();
+			s.lon = selectedLocation.getLongitude();
+		}
 	}
 }

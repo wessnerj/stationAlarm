@@ -20,7 +20,7 @@
             android:text="@string/add_location_name" />
 
         <EditText
-            android:id="@+id/editText1"
+            android:id="@+id/name_edit"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -28,6 +28,12 @@
 
             <requestFocus />
         </EditText>
+
+        <Button
+            android:id="@+id/save_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save" />
 
     </LinearLayout>
 

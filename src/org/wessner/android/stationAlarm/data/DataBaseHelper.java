@@ -14,7 +14,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	/**
 	 * Version of database, must be increased with every update
 	 */
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 	
 	/**
 	 * Name of the default PRIMARY KEY
@@ -39,7 +39,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-		db.execSQL("CREATE TABLE locations ("
+		db.execSQL("CREATE TABLE stations ("
 				+ "_id int(11) PRIMARY KEY, "
 				+ "name varchar(255), "
 				+ "lat decimal(8,6), "

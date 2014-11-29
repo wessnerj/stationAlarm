@@ -8,5 +8,7 @@
     <string name="ic_action_new">Add</string>
     <string name="title_activity_add_location">AddLocationActivity</string>
     <string name="add_location_name">Name</string>
+    <string name="add">add</string>
+    <string name="save">Save</string>
 
 </resources>
