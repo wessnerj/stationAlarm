@@ -21,7 +21,7 @@ public abstract class AbstractEntityManager<T extends AbstractEntity> {
 	/**
 	 * Columns used for queries
 	 */
-	protected final String[] columns;
+	public final String[] columns;
 	
 	/**
 	 * Method to convert one row of the table to one entity
@@ -78,6 +78,15 @@ public abstract class AbstractEntityManager<T extends AbstractEntity> {
 		return getAll(null);
 	}
 	
+	public Cursor getAllCursor() {
+		return getAllCursor(null);
+	}
+	
+	public Cursor getAllCursor(String orderBy) {
+		SQLiteDatabase db = this.dbh.getWritableDatabase();
+		return db.query(this.tableName, this.columns, null, null, null, null, orderBy, null);
+	}
+	
 	/**
 	 * Get ArrayList with all entities in database
 	 * 
@@ -86,8 +95,7 @@ public abstract class AbstractEntityManager<T extends AbstractEntity> {
 	public ArrayList<T> getAll(String orderBy) {
 		ArrayList<T> entities = new ArrayList<T>();
 		
-		SQLiteDatabase db = this.dbh.getWritableDatabase();
-		Cursor result = db.query(this.tableName, this.columns, null, null, null, null, orderBy, null);
+		Cursor result = getAllCursor(orderBy);
 		result.moveToFirst();
 		
 		while (result.isAfterLast() != true) {
@@ -96,7 +104,7 @@ public abstract class AbstractEntityManager<T extends AbstractEntity> {
 			result.moveToNext();
 		}
 		result.close();
-		db.close();
+		// db.close();
 
 		return entities;
 	}

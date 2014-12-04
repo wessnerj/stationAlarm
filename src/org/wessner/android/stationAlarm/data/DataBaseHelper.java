@@ -46,7 +46,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 				+ "lon decimal(8,6), "
 				+ "active tinyint(1), "
 				+ "created datetime, "
-				+ "modified datetime"
+				+ "modified datetime)"
 				);
 	}
 

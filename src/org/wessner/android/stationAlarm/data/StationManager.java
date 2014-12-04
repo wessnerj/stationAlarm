@@ -5,7 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 public class StationManager extends AbstractEntityManager<Station> {
-	protected static String tableName = "stations";
+	public static String tableName = "stations";
 
 	public StationManager(DataBaseHelper dbh) {
 		super(dbh, tableName, new String[]{ "_id", "name", "lat", "lon", "active" });
