@@ -28,6 +28,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 
 public class AddLocationActivity extends Activity implements OnClickListener {
@@ -99,6 +100,9 @@ public class AddLocationActivity extends Activity implements OnClickListener {
 		
 		OverlayManager om = v.getOverlayManager();
 		om.add(touchOverlay);
+		
+		Button saveButton = (Button) findViewById(R.id.save_button);
+		saveButton.setOnClickListener(this);
 	}
 
 	@Override

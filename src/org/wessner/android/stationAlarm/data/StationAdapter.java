@@ -71,6 +71,12 @@ public class StationAdapter extends CursorAdapter {
 		return s.name;
 	}
 	
+	public Station getItemByPosition(int pos) {
+		Cursor c = this.getCursor();
+		c.moveToPosition(pos);
+		return createItem(c);
+	}
+	
 	/**
 	 * Creates new Station object from cursor's data
 	 * 

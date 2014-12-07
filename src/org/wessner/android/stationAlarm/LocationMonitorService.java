@@ -2,6 +2,7 @@ package org.wessner.android.stationAlarm;
 
 
 import android.app.IntentService;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -9,6 +10,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
@@ -18,7 +20,7 @@ import android.util.Log;
  * 
  * @author Joseph Wessner <joseph@wessner.org>
  */
-public class LocationMonitorService extends IntentService implements LocationListener {	
+public class LocationMonitorService extends Service implements LocationListener {	
 	private static final int TWO_MINUTES = 1000 * 60 * 2;
 
 	/**
@@ -50,16 +52,6 @@ public class LocationMonitorService extends IntentService implements LocationLis
 			handler.postDelayed(GpsFinder, 20000); // register again to start after 20 seconds...
 		}
 	};
-	
-	public LocationMonitorService() {
-		super("LocationMonitorService");
-	}
-
-	@Override
-	protected void onHandleIntent(Intent intent) {
-		// TODO Auto-generated method stub
-		
-	}
 	
 	/**
 	 * Inform every available location provider to call us for location updates.
@@ -218,5 +210,11 @@ public class LocationMonitorService extends IntentService implements LocationLis
 	      return provider2 == null;
 	    }
 	    return provider1.equals(provider2);
+	}
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

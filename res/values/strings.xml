@@ -10,5 +10,10 @@
     <string name="add_location_name">Name</string>
     <string name="add">add</string>
     <string name="save">Save</string>
+    <string name="alarms_active">Alarm active</string>
+    <string name="start">Start Station Alarm</string>
+    <string name="activate">Activate</string>
+    <string name="deactivate">Deactivate</string>
+    <string name="delete">Delete</string>
 
 </resources>
