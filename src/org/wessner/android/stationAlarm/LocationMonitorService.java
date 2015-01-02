@@ -16,7 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.util.Log;
+import android.support.v4.app.NotificationCompat;
 
 /**
  * Background service, which listens on GPS-position and informs the user if
@@ -26,6 +26,10 @@ import android.util.Log;
  */
 public class LocationMonitorService extends Service implements LocationListener {	
 	private static final int TWO_MINUTES = 1000 * 60 * 2;
+	
+	private static final int NOTIFICATION_ID = 33;
+	
+	private static boolean running = false;
 
 	/**
 	 * LocationManager for getting updates on changed locations
@@ -98,6 +102,15 @@ public class LocationMonitorService extends Service implements LocationListener 
 		// register GpsFinder at handler
 		this.handler.postDelayed(GpsFinder, 10000);// will start after 10 seconds
 		
+		NotificationCompat.Builder mBuilder =
+		        new NotificationCompat.Builder(this)
+		        .setSmallIcon(R.drawable.notification_icon)
+		        .setContentTitle("stationAlarm")
+		        .setContentText("stationAlarm is looking for locations!");
+		startForeground(NOTIFICATION_ID, mBuilder.build());
+		
+		running = true;
+		
 		// Inform android, that this service should run longer
 		return START_STICKY;
 	}
@@ -110,6 +123,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 		this.wakeLock.release();
 
 		super.onDestroy();
+		
+		running = false;
 	}
 	
 	@Override
@@ -275,5 +290,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 	public IBinder onBind(Intent intent) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public static boolean isRunning() {
+		return running;
 	}
 }

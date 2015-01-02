@@ -47,9 +47,15 @@ public class StationAdapter extends CursorAdapter {
 
 		ImageView iv = (ImageView) view.findViewById(R.id.station_item_icon);
 		TextView tv = (TextView) view.findViewById(R.id.station_item_headline);
+		TextView sv = (TextView) view.findViewById(R.id.station_item_subline);
 
-		// iv.setImageResource(this.getStationIcon(station));
+		if (station.active)
+			iv.setImageResource(R.drawable.ic_launcher);
+		else
+			iv.setImageResource(R.drawable.deactive_alarm);
+		
 		tv.setText(station.name);
+		sv.setText("500m");
 	}
 	
 	@Override

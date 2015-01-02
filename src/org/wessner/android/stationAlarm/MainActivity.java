@@ -36,6 +36,9 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
 	private StationAdapter stationAdapter;
 	
 	private GridView gridView;
+	
+	private Button startButton;
+	private Button stopButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,13 +47,14 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
         
         this.stationManager = new StationManager(new DataBaseHelper(this));
         
-        Button startButton = (Button) findViewById(R.id.button1);
+        this.startButton = (Button) findViewById(R.id.button1);
         startButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				startService();
 			}
         });
+        this.stopButton = (Button) findViewById(R.id.button2);
         
         this.gridView = (GridView) findViewById(R.id.gridView1);
         this.stationAdapter = new StationAdapter(this, this.stationManager.getAllCursor());
@@ -67,6 +71,15 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
         this.stationAdapter.changeCursor(this.stationManager.getAllCursor());
         this.stationAdapter.notifyDataSetChanged();
     	this.gridView.invalidate();
+    	
+    	if (LocationMonitorService.isRunning()) {
+    		this.startButton.setVisibility(View.GONE);
+    		this.stopButton.setVisibility(View.VISIBLE);
+    	}
+    	else {
+    		this.startButton.setVisibility(View.VISIBLE);
+    		this.stopButton.setVisibility(View.GONE);
+    	}
     }
 
     @Override
