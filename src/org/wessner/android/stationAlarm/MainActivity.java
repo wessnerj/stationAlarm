@@ -44,13 +44,13 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
         
         this.stationManager = new StationManager(new DataBaseHelper(this));
         
-//        Button startButton = (Button) findViewById(R.id.button1);
-//        startButton.setOnClickListener(new OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				startService();
-//			}
-//        });
+        Button startButton = (Button) findViewById(R.id.button1);
+        startButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				startService();
+			}
+        });
         
         this.gridView = (GridView) findViewById(R.id.gridView1);
         this.stationAdapter = new StationAdapter(this, this.stationManager.getAllCursor());
@@ -59,6 +59,14 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
         // this.gridView.setOnItemLongClickListener(this);
         
         registerForContextMenu(this.gridView);
+    }
+    
+    protected void onResume() {
+    	super.onResume();
+    	
+        this.stationAdapter.changeCursor(this.stationManager.getAllCursor());
+        this.stationAdapter.notifyDataSetChanged();
+    	this.gridView.invalidate();
     }
 
     @Override
@@ -105,7 +113,7 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
 			Station s = this.stationAdapter.getItemByPosition(info.position);
 			
 			menu.setHeaderTitle(s.name);
-			menu.add(Menu.NONE, CONTEXT_ID_DE_ACTIVATE, 1, s.active? getString(R.string.activate): getString(R.string.deactivate));
+			menu.add(Menu.NONE, CONTEXT_ID_DE_ACTIVATE, 1, s.active? getString(R.string.deactivate): getString(R.string.activate));
 			menu.add(Menu.NONE, CONTEXT_ID_DELETE, 2, getString(R.string.delete));
 		}
 	}
@@ -126,7 +134,9 @@ public class MainActivity extends Activity implements OnItemLongClickListener {
 			this.stationManager.delete(station._id);
 		}
 		
-		this.stationAdapter.notifyDataSetInvalidated();
+		this.stationAdapter.changeCursor(this.stationManager.getAllCursor());
+		this.stationAdapter.notifyDataSetChanged();
+    	this.gridView.invalidate();
 		return true;
 	}
 };

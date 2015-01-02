@@ -1,7 +1,11 @@
 package org.wessner.android.stationAlarm;
 
+import java.util.ArrayList;
 
-import android.app.IntentService;
+import org.wessner.android.stationAlarm.data.DataBaseHelper;
+import org.wessner.android.stationAlarm.data.Station;
+import org.wessner.android.stationAlarm.data.StationManager;
+
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +20,7 @@ import android.util.Log;
 
 /**
  * Background service, which listens on GPS-position and informs the user if
- * specific station is reached. Look at AlarmsAcitivity to add alarms.
+ * specific station is reached. Look at MainAcitivity to add alarms.
  * 
  * @author Joseph Wessner <joseph@wessner.org>
  */
@@ -42,6 +46,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * WakeLock to prevent the phone to go into sleep mode
 	 */
 	private PowerManager.WakeLock wakeLock;
+	
+	private StationManager stationManager;
 	
 	/**
 	 * Periodically called by handler for checking current location
@@ -77,18 +83,10 @@ public class LocationMonitorService extends Service implements LocationListener 
 	
 	public void onCreate() {
 		// Initialize AlarmManger, LocationManager, PowerManger and WakeLock
-		// this.alarmManager = new AlarmManager(new DataBaseHelper(this));
+		this.stationManager = new StationManager(new DataBaseHelper(this));
 		this.locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		this.wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AlarmService");
-	}
-	
-	public void onStart(Intent i, int startId) {
-		super.onStart(i, startId);
-
-		// register GpsFinder at handler
-		this.handler.postDelayed(GpsFinder, 10000);// will start after 10
-													// seconds
 	}
 	
 	public int onStartCommand(Intent intent, int flags, int startId) {
@@ -96,6 +94,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 		// aquire wakeLock
 		this.wakeLock.acquire();
+		
+		// register GpsFinder at handler
+		this.handler.postDelayed(GpsFinder, 10000);// will start after 10 seconds
 		
 		// Inform android, that this service should run longer
 		return START_STICKY;
@@ -116,7 +117,65 @@ public class LocationMonitorService extends Service implements LocationListener 
 		if (isBetterLocation(location, this.lastLocation)) {
 			this.lastLocation = location;
 			
-			Log.d("onLocationChanged", location.toString());
+			checkForAlarm();
+		}
+	}
+	
+	/**
+	 * Cleanup and stopping itself (service)
+	 */
+	private void quit() {
+		this.handler.removeCallbacks(GpsFinder);
+		this.handler.removeCallbacksAndMessages(null);
+		this.stopSelf();
+	}
+	
+	/**
+	 * Fire alarm and inform the user of active alarm.
+	 * 
+	 * @param distance current distance to alarmStation
+	 * @param alarm Alarm Object
+	 */
+	private void alertUser(final float distance, final Station station) {
+		final Intent dialogIntent = new Intent(getBaseContext(),
+				ShowAlarmActivity.class);
+		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		dialogIntent.putExtra("name", station.name);
+		dialogIntent.putExtra("distance", (int) distance);
+		dialogIntent.putExtra("id", station._id);
+		getApplication().startActivity(dialogIntent);
+		this.stopSelf();
+	}
+	
+	private void checkForAlarm()
+	{
+		if (null == this.lastLocation)
+			return; // Nothing to do without a location ..
+		
+		// Get all active stations
+		ArrayList<Station> stations = this.stationManager.getAllActive();
+		
+		if (stations.size() < 1)
+		{
+			// No active station -> stop service
+			this.quit();
+			return;
+		}
+		
+		for (final Station s : stations)
+		{
+			float[] results = new float[3];
+			// Calculate distance
+			Location.distanceBetween(
+					this.lastLocation.getLatitude(), this.lastLocation.getLongitude(), 
+					s.lat, s.lon, results);
+			
+			if (results[0] < 500.f)
+			{
+				// Station is less than 500m away -> Call alarm
+				alertUser(results[0], s);
+				return;
+			}
 		}
 	}
 

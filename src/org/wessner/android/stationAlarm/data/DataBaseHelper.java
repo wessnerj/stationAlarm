@@ -40,7 +40,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL("CREATE TABLE stations ("
-				+ "_id int(11) PRIMARY KEY, "
+				+ "_id INTEGER PRIMARY KEY AUTOINCREMENT, "
 				+ "name varchar(255), "
 				+ "lat decimal(8,6), "
 				+ "lon decimal(8,6), "

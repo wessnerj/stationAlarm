@@ -41,6 +41,11 @@
             android:name=".AddLocationActivity"
             android:label="@string/title_activity_add_location" >
         </activity>
+        
+        <activity 
+            android:name=".ShowAlarmActivity" 
+            android:theme="@android:style/Theme.Translucent" 
+            android:screenOrientation="behind" />
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package org.wessner.android.stationAlarm.data;
 
+import java.util.ArrayList;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,7 +26,7 @@ public class StationManager extends AbstractEntityManager<Station> {
 		SQLiteDatabase db = this.dbh.getWritableDatabase();
 		
 		ContentValues cv = new ContentValues();
-		cv.put("_id", 		s._id);
+		// cv.put("_id", 		s._id);
 		cv.put("name", 		s.name);
 		cv.put("lat", 		s.lat);
 		cv.put("lon", 		s.lon);
@@ -47,5 +49,36 @@ public class StationManager extends AbstractEntityManager<Station> {
 		db.close();
 		
 		return ret;
+	}
+	
+	public Cursor getAllActiveCursor(String orderBy) {
+		SQLiteDatabase db = this.dbh.getWritableDatabase();
+		
+		String where = "active = ?";
+		String[] whereArgs = { "1" };
+		
+		return db.query(tableName, this.columns, where, whereArgs, null, null, orderBy, null);
+	}
+	
+	/**
+	 * Get ArrayList with all active stations in database
+	 * 
+	 * @return
+	 */
+	public ArrayList<Station> getAllActive() {
+		ArrayList<Station> entities = new ArrayList<Station>();
+		
+		Cursor result = getAllActiveCursor(null);
+		result.moveToFirst();
+		
+		while (result.isAfterLast() != true) {
+			entities.add(this.cursorToItem(result));
+
+			result.moveToNext();
+		}
+		result.close();
+		// db.close();
+
+		return entities;
 	}
 }
