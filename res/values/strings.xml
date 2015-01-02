@@ -15,6 +15,7 @@
     <string name="activate">Activate</string>
     <string name="deactivate">Deactivate</string>
     <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
     <string name="stop">Stop Station Alarm</string>
 
 </resources>

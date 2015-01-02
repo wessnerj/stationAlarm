@@ -11,11 +11,12 @@
         android:id="@+id/station_item_icon"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:layout_marginBottom="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
         android:src="@drawable/ic_launcher" >
+
     </ImageView>
 
     <LinearLayout
@@ -30,7 +31,6 @@
             android:id="@+id/station_item_headline"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Headline"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="#000000" />
 
@@ -38,7 +38,6 @@
             android:id="@+id/station_item_subline"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Subline"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="#000000" />
         
