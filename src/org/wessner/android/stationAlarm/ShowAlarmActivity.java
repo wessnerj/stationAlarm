@@ -39,7 +39,11 @@ public class ShowAlarmActivity extends Activity implements
 	/**
 	 * Is sound playing started?
 	 */
-	private boolean soundStarted = false;
+	private static boolean soundStarted = false;
+	
+	private static boolean vibrateStarted = false;
+	
+	private static boolean alarmRunning = false;
 
 	/**
 	 * AudioManger for getting active RingerMode
@@ -58,6 +62,13 @@ public class ShowAlarmActivity extends Activity implements
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		if (alarmRunning) {
+			// alarm is already running
+			this.finish();
+			return;
+		}
+		alarmRunning = true;
 
 		// Get necessary information from intent
 		final String name = getIntent().getExtras().getString("name");
@@ -79,7 +90,7 @@ public class ShowAlarmActivity extends Activity implements
 		this.vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
 		// only peep if phone is not in vibrate or silent mode
-		if (this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+		if (this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && soundStarted == false) {
 			mp.setAudioStreamType(AudioManager.STREAM_ALARM);
 			mp.setLooping(true);
 
@@ -89,12 +100,12 @@ public class ShowAlarmActivity extends Activity implements
 			}
 
 			mp.start();
-			this.soundStarted = true;
+			soundStarted = true;
 		}
 
 		// vibrate in silent/normal mode
-		if (this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL
-				|| this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE) {
+		if (vibrateStarted == false && (this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL
+				|| this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE)) {
 			// Start immediately
 			// Vibrate for 200 milliseconds
 			// Sleep for 100 milliseconds
@@ -102,6 +113,7 @@ public class ShowAlarmActivity extends Activity implements
 			// Sleep for 800 milliseconds
 			final long[] pattern = { 0, 200, 100, 300, 800 };
 			this.vibrator.vibrate(pattern, 0);
+			vibrateStarted = true;
 		}
 
 		// Get wakeLock and turn display on
@@ -157,11 +169,14 @@ public class ShowAlarmActivity extends Activity implements
 	 */
 	private void quit() {
 		// stop alarm sound and vibration
-		if (this.soundStarted) {
+		if (soundStarted) {
 			this.mp.stop();
-			this.soundStarted = false;
+			soundStarted = false;
 		}
-		this.vibrator.cancel();
+		if (vibrateStarted) {
+			this.vibrator.cancel();
+			vibrateStarted = false;
+		}
 
 		// release wakeLock
 		this.wakeLock.release();
@@ -171,6 +186,8 @@ public class ShowAlarmActivity extends Activity implements
 		Station s = stationManager.get(this.alarmId);
 		s.active = false;
 		stationManager.save(s);
+		
+		alarmRunning = false;
 
 		// start AlarmService again
 		Intent service = new Intent(this, LocationMonitorService.class);

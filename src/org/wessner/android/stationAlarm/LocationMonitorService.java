@@ -185,9 +185,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 					this.lastLocation.getLatitude(), this.lastLocation.getLongitude(), 
 					s.lat, s.lon, results);
 			
-			if (results[0] < 500.f)
+			if (results[0] < 1100.f) // Add 10%, just to be safe
 			{
-				// Station is less than 500m away -> Call alarm
+				// Station is less than 1000m away -> Call alarm
 				alertUser(results[0], s);
 				return;
 			}

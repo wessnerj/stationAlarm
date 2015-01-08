@@ -55,7 +55,7 @@ public class StationAdapter extends CursorAdapter {
 			iv.setImageResource(R.drawable.deactive_alarm);
 		
 		tv.setText(station.name);
-		sv.setText("500m");
+		sv.setText("1km");
 	}
 	
 	@Override
