@@ -6,6 +6,7 @@ import org.wessner.android.stationAlarm.data.DataBaseHelper;
 import org.wessner.android.stationAlarm.data.Station;
 import org.wessner.android.stationAlarm.data.StationManager;
 
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -123,11 +124,24 @@ public class LocationMonitorService extends Service implements LocationListener 
 		// aquire wakeLock
 		this.wakeLock.acquire();
 		
+		// PendingIntent to show app's main activity
+		Intent resultIntent = new Intent(this, MainActivity.class);
+		// Because clicking the notification opens a new ("special") activity, there's
+		// no need to create an artificial back stack.
+		PendingIntent resultPendingIntent =
+		    PendingIntent.getActivity(
+		    this,
+		    0,
+		    resultIntent,
+		    PendingIntent.FLAG_UPDATE_CURRENT
+		);
+		
 		// Get high priority and show icon in notification area
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 				this).setSmallIcon(R.drawable.notification_icon)
 				.setContentTitle("stationAlarm")
-				.setContentText("stationAlarm is looking for locations!");
+				.setContentText("stationAlarm is looking for locations!")
+				.setContentIntent(resultPendingIntent);
 		startForeground(NOTIFICATION_ID, mBuilder.build());
 		
 		// Set running status to true
