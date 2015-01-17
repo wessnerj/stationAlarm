@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 
 /**
  * Background service, which listens on GPS-position and informs the user if
@@ -30,6 +31,21 @@ public class LocationMonitorService extends Service implements LocationListener 
 	private static final int NOTIFICATION_ID = 33;
 	
 	private static boolean running = false;
+	
+	/// Minimum time to wait for location updates (currently 20s) [ms]
+	private static final long MIN_UPDATE_WINDOW = 20 * 1000;
+	
+	/// Maximum time to wait for location updates (currently 40s) [ms]
+	private static final long MAX_UPDATE_WINDOW = 40 * 1000;
+	
+	/// Threshold for deciding if location update is accurate enough (default: 100) [m]
+	private static final float ACCURACY_THRESHOLD = 100.f;
+	
+	/// Maximum sleep window between two location requests (default: 5min) [ms]
+	private static final long MAX_SLEEP_WINDOW = 5 * 60 * 1000;
+	
+	/// Time, when listing for location updates was started
+	private long updateWindowStartTime;
 
 	/**
 	 * LocationManager for getting updates on changed locations
@@ -54,16 +70,6 @@ public class LocationMonitorService extends Service implements LocationListener 
 	private StationManager stationManager;
 	
 	/**
-	 * Periodically called by handler for checking current location
-	 */
-	private Runnable GpsFinder = new Runnable() {
-		public void run() {
-			registerProviders();
-			handler.postDelayed(GpsFinder, 20000); // register again to start after 20 seconds...
-		}
-	};
-	
-	/**
 	 * Inform every available location provider to call us for location updates.
 	 * Additionally use best last known location as current location.
 	 */
@@ -71,18 +77,36 @@ public class LocationMonitorService extends Service implements LocationListener 
 		java.util.List<String> providers = this.locationManager.getAllProviders();
 
 		// get best last known location, and register itself for location changes
-		Location bestLocation = null;
 		for (String provider : providers) {
-			this.locationManager.requestLocationUpdates(provider, 5000, 400,
+			this.locationManager.requestLocationUpdates(provider, 2000, 100,
 					this);
 			Location loc = this.locationManager.getLastKnownLocation(provider);
-			if (isBetterLocation(loc, bestLocation))
-				bestLocation = loc;
+			
+			if (this.lastLocation == null || isBetterLocation(loc, this.lastLocation))
+				this.lastLocation = loc;
 		}
-
-		// save current location and check for active alarms
-		this.lastLocation = bestLocation;
-		// this.checkForAlarm(bestLocation);
+		
+		// Save the start time
+		this.updateWindowStartTime = System.currentTimeMillis();
+		
+		// Call unregisterProviders after timeout
+		this.handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				unregisterProviders();
+			}
+		}, MAX_UPDATE_WINDOW);
+	}
+	
+	/**
+	 * Unregister itself from getting location updates and check for alarms using best location estimate.
+	 */
+	private void unregisterProviders() {
+		// don't get any updates und location changes anymore
+		this.locationManager.removeUpdates(this);
+		
+		// check for alarms with best location estimate
+		checkForAlarm();
 	}
 	
 	public void onCreate() {
@@ -99,17 +123,18 @@ public class LocationMonitorService extends Service implements LocationListener 
 		// aquire wakeLock
 		this.wakeLock.acquire();
 		
-		// register GpsFinder at handler
-		this.handler.postDelayed(GpsFinder, 10000);// will start after 10 seconds
-		
-		NotificationCompat.Builder mBuilder =
-		        new NotificationCompat.Builder(this)
-		        .setSmallIcon(R.drawable.notification_icon)
-		        .setContentTitle("stationAlarm")
-		        .setContentText("stationAlarm is looking for locations!");
+		// Get high priority and show icon in notification area
+		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
+				this).setSmallIcon(R.drawable.notification_icon)
+				.setContentTitle("stationAlarm")
+				.setContentText("stationAlarm is looking for locations!");
 		startForeground(NOTIFICATION_ID, mBuilder.build());
 		
+		// Set running status to true
 		running = true;
+		
+		// Register for location updates
+		registerProviders();
 		
 		// Inform android, that this service should run longer
 		return START_STICKY;
@@ -131,16 +156,21 @@ public class LocationMonitorService extends Service implements LocationListener 
 	public void onLocationChanged(Location location) {
 		if (isBetterLocation(location, this.lastLocation)) {
 			this.lastLocation = location;
-			
-			checkForAlarm();
+			Log.d("New location", location.getProvider() + ": " + location.getAccuracy());
 		}
+
+		// if location is accurate enough and MIN_UPDATE_WINDOW time is already
+		// past -> Unregister for location updates and check for alarms
+		if (this.lastLocation.getAccuracy() < ACCURACY_THRESHOLD
+				&& this.updateWindowStartTime + MIN_UPDATE_WINDOW < System
+						.currentTimeMillis())
+			unregisterProviders();
 	}
 	
 	/**
 	 * Cleanup and stopping itself (service)
 	 */
 	private void quit() {
-		this.handler.removeCallbacks(GpsFinder);
 		this.handler.removeCallbacksAndMessages(null);
 		this.stopSelf();
 	}
@@ -165,11 +195,14 @@ public class LocationMonitorService extends Service implements LocationListener 
 	private void checkForAlarm()
 	{
 		if (null == this.lastLocation)
-			return; // Nothing to do without a location ..
+		{
+			// Register again for location updates and do nothing for now ..
+			registerProviders();
+			return;
+		}
 		
 		// Get all active stations
 		ArrayList<Station> stations = this.stationManager.getAllActive();
-		
 		if (stations.size() < 1)
 		{
 			// No active station -> stop service
@@ -177,6 +210,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 			return;
 		}
 		
+		// Save the closest distance to alarm
+		float closest = Float.MAX_VALUE;
 		for (final Station s : stations)
 		{
 			float[] results = new float[3];
@@ -185,13 +220,35 @@ public class LocationMonitorService extends Service implements LocationListener 
 					this.lastLocation.getLatitude(), this.lastLocation.getLongitude(), 
 					s.lat, s.lon, results);
 			
-			if (results[0] < 1100.f) // Add 10%, just to be safe
+			// Calculate how far away from alarm this stations is
+			final float dist2alarm = results[0] - 1.1f * 1000.f; // Add 10% to be sure
+			if (dist2alarm < 0.f)
 			{
 				// Station is less than 1000m away -> Call alarm
 				alertUser(results[0], s);
 				return;
 			}
+			
+			if (dist2alarm < closest)
+				closest = dist2alarm;
 		}
+		
+		// Calculate the sleep time until next location queries
+		// Assuming the user is traveling with 108km/h (= 30m/s),
+		// in this case the alarm would be reached in:
+		long timeToAlarm = (long) (closest*1000.f / 30.f);
+		if (timeToAlarm > MAX_SLEEP_WINDOW)
+			timeToAlarm = MAX_SLEEP_WINDOW; // Never sleep longer than MAX_SLEEP_WINDOW
+		
+		Log.d("timeToAlarm", timeToAlarm/1000 + "s");
+		
+		// No user alert happened, but at least one station is still active
+		// -> Go to sleep and wait for new locations
+		this.handler.postDelayed(new Runnable() {
+			public void run() {
+				registerProviders();
+			}
+		}, timeToAlarm);
 	}
 
 	@Override
