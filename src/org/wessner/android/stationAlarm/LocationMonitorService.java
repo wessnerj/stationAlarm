@@ -18,7 +18,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
 
 /**
  * Background service, which listens on GPS-position and informs the user if
@@ -168,10 +167,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	
 	@Override
 	public void onLocationChanged(Location location) {
-		if (isBetterLocation(location, this.lastLocation)) {
+		if (isBetterLocation(location, this.lastLocation))
 			this.lastLocation = location;
-			Log.d("New location", location.getProvider() + ": " + location.getAccuracy());
-		}
 
 		// if location is accurate enough and MIN_UPDATE_WINDOW time is already
 		// past -> Unregister for location updates and check for alarms
@@ -253,8 +250,6 @@ public class LocationMonitorService extends Service implements LocationListener 
 		long timeToAlarm = (long) (closest*1000.f / 30.f);
 		if (timeToAlarm > MAX_SLEEP_WINDOW)
 			timeToAlarm = MAX_SLEEP_WINDOW; // Never sleep longer than MAX_SLEEP_WINDOW
-		
-		Log.d("timeToAlarm", timeToAlarm/1000 + "s");
 		
 		// No user alert happened, but at least one station is still active
 		// -> Go to sleep and wait for new locations
