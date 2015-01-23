@@ -55,7 +55,7 @@ public class StationAdapter extends CursorAdapter {
 			iv.setImageResource(R.drawable.deactive_alarm);
 		
 		tv.setText(station.name);
-		sv.setText("1km");
+		sv.setText(String.format("%.1f km", station.distance/1000.f));
 	}
 	
 	@Override
@@ -65,7 +65,7 @@ public class StationAdapter extends CursorAdapter {
 		}
 
 		SQLiteDatabase db = this.dataBaseHelper.getWritableDatabase();
-		Cursor cursor = db.query(StationManager.tableName, new String[]{ "_id", "name", "lat", "lon", "active" }, null, null, null, null, "name", null);
+		Cursor cursor = db.query(StationManager.tableName, new String[]{ "_id", "name", "lat", "lon", "distance", "active" }, null, null, null, null, "name", null);
 
 		return cursor;
 	}
@@ -95,6 +95,7 @@ public class StationAdapter extends CursorAdapter {
 				this.dataBaseHelper.getString(cursor, "name"),
 				this.dataBaseHelper.getDouble(cursor, "lat"),
 				this.dataBaseHelper.getDouble(cursor, "lon"),
+				this.dataBaseHelper.getDouble(cursor, "distance").floatValue(),
 				this.dataBaseHelper.getInteger(cursor, "active") > 0
 			);
 

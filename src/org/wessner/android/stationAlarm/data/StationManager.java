@@ -10,14 +10,14 @@ public class StationManager extends AbstractEntityManager<Station> {
 	public static String tableName = "stations";
 
 	public StationManager(DataBaseHelper dbh) {
-		super(dbh, tableName, new String[]{ "_id", "name", "lat", "lon", "active" });
+		super(dbh, tableName, new String[]{ "_id", "name", "lat", "lon", "distance", "active" });
 	}
 
 	@Override
 	protected Station cursorToItem(Cursor c) {
 		return new Station(this.dbh.getInteger(c, "_id"), this.dbh.getString(c,
 				"name"), this.dbh.getDouble(c, "lat"), this.dbh.getDouble(c,
-				"lon"), this.dbh.getInteger(c, "active") > 0);
+				"lon"), this.dbh.getDouble(c, "distance").floatValue(), this.dbh.getInteger(c, "active") > 0);
 	}
 
 	public boolean save(Station s) {
@@ -30,6 +30,7 @@ public class StationManager extends AbstractEntityManager<Station> {
 		cv.put("name", 		s.name);
 		cv.put("lat", 		s.lat);
 		cv.put("lon", 		s.lon);
+		cv.put("distance",  s.distance);
 		cv.put("active", 	s.active);
 		
 		if (s._id > 0) {

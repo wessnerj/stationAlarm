@@ -28,6 +28,7 @@
         android:id="@+id/gridView1"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:columnWidth="240dp"
         android:gravity="top"
         android:numColumns="auto_fit" >
 

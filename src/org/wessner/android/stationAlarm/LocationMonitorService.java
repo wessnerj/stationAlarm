@@ -44,6 +44,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 	/// Maximum sleep window between two location requests (default: 5min) [ms]
 	private static final long MAX_SLEEP_WINDOW = 5 * 60 * 1000;
 	
+	/// True if location has been received in current listening window
+	private boolean locationReceivedInWindow = false;
+	
 	/// Time, when listing for location updates was started
 	private long updateWindowStartTime;
 
@@ -75,6 +78,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 */
 	private void registerProviders() {
 		java.util.List<String> providers = this.locationManager.getAllProviders();
+		
+		// Starting new location listening window ..
+		locationReceivedInWindow = false;
 
 		// get best last known location, and register itself for location changes
 		for (String provider : providers) {
@@ -167,8 +173,11 @@ public class LocationMonitorService extends Service implements LocationListener 
 	
 	@Override
 	public void onLocationChanged(Location location) {
-		if (isBetterLocation(location, this.lastLocation))
+		// Store location, if it is the first one in window or better than the last one
+		if (!locationReceivedInWindow || isBetterLocation(location, this.lastLocation))
 			this.lastLocation = location;
+		
+		locationReceivedInWindow = true;
 
 		// if location is accurate enough and MIN_UPDATE_WINDOW time is already
 		// past -> Unregister for location updates and check for alarms
@@ -232,10 +241,10 @@ public class LocationMonitorService extends Service implements LocationListener 
 					s.lat, s.lon, results);
 			
 			// Calculate how far away from alarm this stations is
-			final float dist2alarm = results[0] - 1.1f * 1000.f; // Add 10% to be sure
+			final float dist2alarm = results[0] - 1.1f * s.distance; // Add 10% to be sure
 			if (dist2alarm < 0.f)
 			{
-				// Station is less than 1000m away -> Call alarm
+				// Station is less than s.distance away -> Call alarm
 				alertUser(results[0], s);
 				return;
 			}
@@ -262,21 +271,18 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 	@Override
 	public void onProviderDisabled(java.lang.String provider) {
-		// TODO Auto-generated method stub
-		
+		// Auto-generated method stub
 	}
 
 	@Override
 	public void onProviderEnabled(java.lang.String provider) {
-		// TODO Auto-generated method stub
-		
+		// Auto-generated method stub
 	}
 
 	@Override
 	public void onStatusChanged(java.lang.String provider, int status,
 			Bundle extras) {
-		// TODO Auto-generated method stub
-		
+		// Auto-generated method stub
 	}
 	
 	/**
@@ -354,7 +360,7 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		return null;
 	}
 	

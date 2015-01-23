@@ -14,7 +14,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	/**
 	 * Version of database, must be increased with every update
 	 */
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 4;
 	
 	/**
 	 * Name of the default PRIMARY KEY
@@ -44,6 +44,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 				+ "name varchar(255), "
 				+ "lat decimal(8,6), "
 				+ "lon decimal(8,6), "
+				+ "distance REAL, "
 				+ "active tinyint(1), "
 				+ "created datetime, "
 				+ "modified datetime)"
@@ -52,7 +53,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		db.execSQL("DROP TABLE IF EXISTS locations");
+		db.execSQL("DROP TABLE IF EXISTS stations");
 		this.onCreate(db);
 	}
 	
@@ -97,5 +98,4 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 			return null;
 		return cursor.getString(columnID);
 	}
-
 }
