@@ -22,7 +22,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -134,7 +133,13 @@ public class AddLocationActivity extends Activity implements OnClickListener {
 			if (l != null) break;
 		}
 		
-		Log.d("getLastLocation", l.toString());
+		if (l == null)
+		{
+			// Use center of Germany as default
+			l = new Location("custom");
+			l.setLongitude(10.447683);
+			l.setLatitude(51.163375);
+		}
 		
 		return l;
 	}
