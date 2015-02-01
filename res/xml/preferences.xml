@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:key="pref_group_alarm"
+        android:title="@string/pref_group_general_header" >
+
+        <!-- Add language selection -->
+        <!-- Add quick start: click on station to activate and start -->
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="pref_group_alarm"
+        android:title="@string/pref_group_alarm_header" >
+        <ListPreference
+            android:defaultValue="@string/pref_vibrate_val_default"
+            android:entries="@array/pref_vibrate_entries"
+            android:entryValues="@array/pref_vibrate_values"
+            android:key="pref_vibrate"
+            android:title="@string/pref_vibrate_header" />
+        <ListPreference
+            android:defaultValue="@string/pref_sound_val_default"
+            android:entries="@array/pref_sound_entries"
+            android:entryValues="@array/pref_sound_values"
+            android:key="pref_sound"
+            android:title="@string/pref_sound_header" />
+        <RingtonePreference 
+            android:key="pref_sound_ringtone" 
+            android:title="@string/pref_sound_ringtone_header"
+            android:defaultValue="@string/pref_sound_ringtone_val_default"
+            android:ringtoneType="alarm"
+            android:showDefault="true"
+            android:showSilent="false"
+            />
+    </PreferenceCategory>
+
+</PreferenceScreen>
