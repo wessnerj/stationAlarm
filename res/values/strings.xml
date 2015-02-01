@@ -22,5 +22,6 @@
     <string name="add_location_distance_value">(%3.1f km)</string>
     <string name="add_location_marker_desc" formatted="false">Lat: %.6f\nLon: %.6f</string>
     <string name="show_alarm_text" formatted="false">Alarm for %s (%.1f km away)</string>
+    <string name="err_no_active_station">No active station!</string>
 
 </resources>

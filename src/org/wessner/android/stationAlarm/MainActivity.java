@@ -19,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.GridView;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity implements OnItemLongClickListener, OnClickListener {
@@ -155,6 +156,13 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
      * Starts the Alarm service
      */
     private void startService() {
+    	// Check if there is any active station:
+    	if (this.stationManager.getAllActive().size() < 1) {
+    		// Now active station found
+    		Toast.makeText(this, getString(R.string.err_no_active_station), Toast.LENGTH_LONG).show();
+    		return;
+    	}
+    	
     	Intent mServiceIntent = new Intent(this, LocationMonitorService.class);
     	this.startService(mServiceIntent);
     	
