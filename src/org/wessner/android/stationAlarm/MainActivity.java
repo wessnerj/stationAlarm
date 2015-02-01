@@ -27,10 +27,6 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
 	 * Request code for switching to AddStationActivity
 	 */
 	private static final int REQUEST_CODE = 10;
-	/**
-	 * Request code for switching to AddStationActivity
-	 */
-	private static final int REQUEST_CODE_EDIT = 20;	
 	
 	/**
 	 * Context menu id for (de)activate entry
@@ -210,7 +206,7 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
 			Intent switchToAddStation = new Intent(this,
 					AddLocationActivity.class);
 			switchToAddStation.putExtra("stationId", station._id);
-			startActivityForResult(switchToAddStation, REQUEST_CODE_EDIT);
+			startActivity(switchToAddStation);
 			break;
 		default: // unkown code
 			return true;

@@ -17,5 +17,8 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="stop">Stop Station Alarm</string>
+    <string name="add_location_info">Hint: Use a long press to set a location.</string>
+    <string name="add_location_distance">Distance</string>
+    <string name="add_location_distance_value">(%3.1f km)</string>
 
 </resources>

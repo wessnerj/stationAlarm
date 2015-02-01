@@ -25,36 +25,58 @@ import android.support.v4.app.NotificationCompat;
  * 
  * @author Joseph Wessner <joseph@wessner.org>
  */
-public class LocationMonitorService extends Service implements LocationListener {	
-	private static final int TWO_MINUTES = 1000 * 60 * 2;
-	
+public class LocationMonitorService extends Service implements LocationListener {
+	/**
+	 * Constant for one minute in milli-seconds [ms]
+	 */
+	private static final int ONE_MINUTE = 1000 * 60 * 1;
+
+	/**
+	 * Constant for notification id
+	 */
 	private static final int NOTIFICATION_ID = 33;
-	
+
+	/**
+	 * Stores the running/non-running status of this service
+	 */
 	private static boolean running = false;
-	
-	/// Minimum time to wait for location updates (currently 20s) [ms]
-	private static final long MIN_UPDATE_WINDOW = 20 * 1000;
-	
-	/// Maximum time to wait for location updates (currently 40s) [ms]
+
+	/**
+	 * Minimum time to wait for location updates (currently 10s) [ms]
+	 */
+	private static final long MIN_UPDATE_WINDOW = 10 * 1000;
+
+	/**
+	 * Maximum time to wait for location updates (currently 40s) [ms]
+	 */
 	private static final long MAX_UPDATE_WINDOW = 40 * 1000;
-	
-	/// Threshold for deciding if location update is accurate enough (default: 100) [m]
+
+	/**
+	 * Threshold for deciding if location update is accurate enough (default:
+	 * 100) [m]
+	 */
 	private static final float ACCURACY_THRESHOLD = 100.f;
-	
-	/// Maximum sleep window between two location requests (default: 5min) [ms]
+
+	/**
+	 * Maximum sleep window between two location requests (default: 5min) [ms]
+	 */
 	private static final long MAX_SLEEP_WINDOW = 5 * 60 * 1000;
-	
-	/// True if location has been received in current listening window
+
+	/**
+	 * True if location has been received in current listening window
+	 */
 	private boolean locationReceivedInWindow = false;
-	
-	/// Time, when listing for location updates was started
+
+	/**
+	 * Time, when listing for location updates was started
+	 */
 	private long updateWindowStartTime;
 
 	/**
 	 * LocationManager for getting updates on changed locations
 	 */
 	private LocationManager locationManager = null;
-	
+
 	/**
 	 * Handler for periodically calling GpsFinder
 	 */
@@ -69,78 +91,42 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * WakeLock to prevent the phone to go into sleep mode
 	 */
 	private PowerManager.WakeLock wakeLock;
-	
-	private StationManager stationManager;
-	
-	/**
-	 * Inform every available location provider to call us for location updates.
-	 * Additionally use best last known location as current location.
-	 */
-	private void registerProviders() {
-		java.util.List<String> providers = this.locationManager.getAllProviders();
-		
-		// Starting new location listening window ..
-		locationReceivedInWindow = false;
 
-		// get best last known location, and register itself for location changes
-		for (String provider : providers) {
-			this.locationManager.requestLocationUpdates(provider, 2000, 100,
-					this);
-			Location loc = this.locationManager.getLastKnownLocation(provider);
-			
-			if (this.lastLocation == null || isBetterLocation(loc, this.lastLocation))
-				this.lastLocation = loc;
-		}
-		
-		// Save the start time
-		this.updateWindowStartTime = System.currentTimeMillis();
-		
-		// Call unregisterProviders after timeout
-		this.handler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				unregisterProviders();
-			}
-		}, MAX_UPDATE_WINDOW);
-	}
-	
 	/**
-	 * Unregister itself from getting location updates and check for alarms using best location estimate.
+	 * For access to stored stations
 	 */
-	private void unregisterProviders() {
-		// don't get any updates und location changes anymore
-		this.locationManager.removeUpdates(this);
-		
-		// check for alarms with best location estimate
-		checkForAlarm();
-	}
-	
+	private StationManager stationManager;
+
+	/**
+	 * Init method
+	 */
 	public void onCreate() {
 		// Initialize AlarmManger, LocationManager, PowerManger and WakeLock
 		this.stationManager = new StationManager(new DataBaseHelper(this));
-		this.locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+		this.locationManager = (LocationManager) this
+				.getSystemService(Context.LOCATION_SERVICE);
 		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		this.wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "AlarmService");
+		this.wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+				"AlarmService");
 	}
-	
+
+	/**
+	 * Start command for the service
+	 */
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
 
 		// aquire wakeLock
 		this.wakeLock.acquire();
-		
+
 		// PendingIntent to show app's main activity
 		Intent resultIntent = new Intent(this, MainActivity.class);
-		// Because clicking the notification opens a new ("special") activity, there's
+		// Because clicking the notification opens a new ("special") activity,
+		// there's
 		// no need to create an artificial back stack.
-		PendingIntent resultPendingIntent =
-		    PendingIntent.getActivity(
-		    this,
-		    0,
-		    resultIntent,
-		    PendingIntent.FLAG_UPDATE_CURRENT
-		);
-		
+		PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0,
+				resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
 		// Get high priority and show icon in notification area
 		NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
 				this).setSmallIcon(R.drawable.notification_icon)
@@ -148,43 +134,15 @@ public class LocationMonitorService extends Service implements LocationListener 
 				.setContentText("stationAlarm is looking for locations!")
 				.setContentIntent(resultPendingIntent);
 		startForeground(NOTIFICATION_ID, mBuilder.build());
-		
+
 		// Set running status to true
 		running = true;
-		
+
 		// Register for location updates
 		registerProviders();
-		
+
 		// Inform android, that this service should run longer
 		return START_STICKY;
-	}
-	
-	public void onDestroy() {
-		// don't get any updates und location changes anymore
-		this.locationManager.removeUpdates(this);
-
-		// release wakeLock
-		this.wakeLock.release();
-
-		super.onDestroy();
-		
-		running = false;
-	}
-	
-	@Override
-	public void onLocationChanged(Location location) {
-		// Store location, if it is the first one in window or better than the last one
-		if (!locationReceivedInWindow || isBetterLocation(location, this.lastLocation))
-			this.lastLocation = location;
-		
-		locationReceivedInWindow = true;
-
-		// if location is accurate enough and MIN_UPDATE_WINDOW time is already
-		// past -> Unregister for location updates and check for alarms
-		if (this.lastLocation.getAccuracy() < ACCURACY_THRESHOLD
-				&& this.updateWindowStartTime + MIN_UPDATE_WINDOW < System
-						.currentTimeMillis())
-			unregisterProviders();
 	}
 	
 	/**
@@ -194,12 +152,118 @@ public class LocationMonitorService extends Service implements LocationListener 
 		this.handler.removeCallbacksAndMessages(null);
 		this.stopSelf();
 	}
+
+	/**
+	 * Service's shutdown handler
+	 */
+	public void onDestroy() {
+		// don't get any updates und location changes anymore
+		this.locationManager.removeUpdates(this);
+
+		// release wakeLock
+		this.wakeLock.release();
+
+		super.onDestroy();
+
+		running = false;
+	}
 	
+	/**
+	 * Inform every available location provider to call us for location updates.
+	 * Additionally use best last known location as current location.
+	 */
+	private void registerProviders() {
+		java.util.List<String> providers = this.locationManager
+				.getAllProviders();
+
+		// Starting new location listening window ..
+		locationReceivedInWindow = false;
+
+		// get best last known location, and register itself for location
+		// changes
+		for (String provider : providers) {
+			this.locationManager.requestLocationUpdates(provider, 2000, 100,
+					this);
+			Location loc = this.locationManager.getLastKnownLocation(provider);
+
+			if (this.lastLocation == null
+					|| isBetterLocation(loc, this.lastLocation))
+				this.lastLocation = loc;
+		}
+
+		// Save the start time
+		this.updateWindowStartTime = System.currentTimeMillis();
+
+		// Call unregisterProviders after timeout
+		this.handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				unregisterProviders();
+			}
+		}, MAX_UPDATE_WINDOW);
+		
+		// Check for usable location after min update window time
+		this.handler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				afterMinListeningTime();
+			}
+		}, MIN_UPDATE_WINDOW);
+	}
+
+	/**
+	 * Unregister itself from getting location updates and check for alarms
+	 * using best location estimate.
+	 */
+	private void unregisterProviders() {
+		// don't get any updates und location changes anymore
+		this.locationManager.removeUpdates(this);
+
+		// check for alarms with best location estimate
+		checkForAlarm();
+	}
+	
+	/**
+	 * Checks if there is already a usable location found, after waiting
+	 * MIN_UPDATE_WINDOW
+	 */
+	private void afterMinListeningTime() {
+		// Check for alarms, if there was a accurate enough location update
+		// during this window
+		if (locationReceivedInWindow
+				&& this.lastLocation.getAccuracy() < ACCURACY_THRESHOLD)
+			unregisterProviders();
+	}
+
+	/**
+	 * Method gets called, if a new location update is available.
+	 * 
+	 * @param location	New location
+	 */
+	public void onLocationChanged(Location location) {
+		// Store location, if it is the first one in window or better than the
+		// last one
+		if (!locationReceivedInWindow
+				|| isBetterLocation(location, this.lastLocation))
+			this.lastLocation = location;
+
+		locationReceivedInWindow = true;
+
+		// if location is accurate enough and MIN_UPDATE_WINDOW time is already
+		// past -> Unregister for location updates and check for alarms
+		if (this.lastLocation.getAccuracy() < ACCURACY_THRESHOLD
+				&& this.updateWindowStartTime + MIN_UPDATE_WINDOW < System
+						.currentTimeMillis())
+			unregisterProviders();
+	}
+
 	/**
 	 * Fire alarm and inform the user of active alarm.
 	 * 
-	 * @param distance current distance to alarmStation
-	 * @param alarm Alarm Object
+	 * @param distance
+	 *            current distance to alarmStation
+	 * @param alarm
+	 *            Alarm Object
 	 */
 	private void alertUser(final float distance, final Station station) {
 		final Intent dialogIntent = new Intent(getBaseContext(),
@@ -211,55 +275,57 @@ public class LocationMonitorService extends Service implements LocationListener 
 		getApplication().startActivity(dialogIntent);
 		this.stopSelf();
 	}
-	
-	private void checkForAlarm()
-	{
-		if (null == this.lastLocation)
-		{
+
+	/**
+	 * Check current position is within the distance radius of an active location alert.
+	 */
+	private void checkForAlarm() {
+		// Check if there is a location available
+		if (null == this.lastLocation) {
 			// Register again for location updates and do nothing for now ..
 			registerProviders();
 			return;
 		}
-		
+
 		// Get all active stations
 		ArrayList<Station> stations = this.stationManager.getAllActive();
-		if (stations.size() < 1)
-		{
+		if (stations.size() < 1) {
 			// No active station -> stop service
 			this.quit();
 			return;
 		}
-		
+
 		// Save the closest distance to alarm
 		float closest = Float.MAX_VALUE;
-		for (final Station s : stations)
-		{
+		for (final Station s : stations) {
 			float[] results = new float[3];
 			// Calculate distance
-			Location.distanceBetween(
-					this.lastLocation.getLatitude(), this.lastLocation.getLongitude(), 
-					s.lat, s.lon, results);
-			
+			Location.distanceBetween(this.lastLocation.getLatitude(),
+					this.lastLocation.getLongitude(), s.lat, s.lon, results);
+
 			// Calculate how far away from alarm this stations is
-			final float dist2alarm = results[0] - 1.1f * s.distance; // Add 10% to be sure
-			if (dist2alarm < 0.f)
-			{
+			// Subtract 10% of alarm's distance to be safe ...
+			final float dist2alarm = results[0] - 1.1f * s.distance; 
+			
+			if (dist2alarm < 0.f) {
 				// Station is less than s.distance away -> Call alarm
 				alertUser(results[0], s);
 				return;
 			}
-			
+
+			// Store closest distance
 			if (dist2alarm < closest)
 				closest = dist2alarm;
 		}
-		
+
 		// Calculate the sleep time until next location queries
 		// Assuming the user is traveling with 108km/h (= 30m/s),
 		// in this case the alarm would be reached in:
-		long timeToAlarm = (long) (closest*1000.f / 30.f);
+		long timeToAlarm = (long) (closest * 1000.f / 30.f) - MIN_UPDATE_WINDOW;
 		if (timeToAlarm > MAX_SLEEP_WINDOW)
-			timeToAlarm = MAX_SLEEP_WINDOW; // Never sleep longer than MAX_SLEEP_WINDOW
-		
+			timeToAlarm = MAX_SLEEP_WINDOW; // Never sleep longer than
+											// MAX_SLEEP_WINDOW
+
 		// No user alert happened, but at least one station is still active
 		// -> Go to sleep and wait for new locations
 		this.handler.postDelayed(new Runnable() {
@@ -269,22 +335,6 @@ public class LocationMonitorService extends Service implements LocationListener 
 		}, timeToAlarm);
 	}
 
-	@Override
-	public void onProviderDisabled(java.lang.String provider) {
-		// Auto-generated method stub
-	}
-
-	@Override
-	public void onProviderEnabled(java.lang.String provider) {
-		// Auto-generated method stub
-	}
-
-	@Override
-	public void onStatusChanged(java.lang.String provider, int status,
-			Bundle extras) {
-		// Auto-generated method stub
-	}
-	
 	/**
 	 * Determines whether one Location reading is better than the current
 	 * Location fix
@@ -307,18 +357,17 @@ public class LocationMonitorService extends Service implements LocationListener 
 		// Check whether the new location fix is newer or older
 		final long timeDelta = location.getTime()
 				- currentBestLocation.getTime();
-		final boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
-		final boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+		final boolean isSignificantlyNewer = timeDelta >  ONE_MINUTE;
+		final boolean isSignificantlyOlder = timeDelta < -ONE_MINUTE;
 		final boolean isNewer = timeDelta > 0;
 
-		// If it's been more than two minutes since the current location, use
-		// the new location
-		// because the user has likely moved
+		// If it's been more than one minute since the current location, use
+		// the new location, because the user has likely moved
 		if (isSignificantlyNewer)
 			return true;
-		else if (isSignificantlyOlder) // If the new location is more than two
-										// minutes older, it must be worse
-			return false;
+		else if (isSignificantlyOlder) // If the new location is more than a
+			return false;			   // minute older, it must be worse
+			
 
 		// Check whether the new location fix is more or less accurate
 		final int accuracyDelta = (int) (location.getAccuracy() - currentBestLocation
@@ -342,29 +391,56 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 		return false;
 	}
-	
-	/** 
+
+	/**
 	 * Checks whether two providers are the same
 	 * 
-	 *  @param provider1		Name of the first provider
-	 *  @param provider2		Name of the second provider
-	 *  
-	 *  @return					True if providers are the same
+	 * @param provider1
+	 *            Name of the first provider
+	 * @param provider2
+	 *            Name of the second provider
+	 * 
+	 * @return True if providers are the same
 	 */
 	private static boolean isSameProvider(String provider1, String provider2) {
-	    if (provider1 == null) {
-	      return provider2 == null;
-	    }
-	    return provider1.equals(provider2);
+		if (provider1 == null) {
+			return provider2 == null;
+		}
+		return provider1.equals(provider2);
+	}
+	
+	/**
+	 * Check whether is service is currently running or not.
+	 * 
+	 * @return True if service is running
+	 */
+	public static boolean isRunning() {
+		return running;
 	}
 
+	/***************************
+	 * Auto-generated methods: *
+	 ***************************
+	 */
 	@Override
 	public IBinder onBind(Intent intent) {
 		// Auto-generated method stub
 		return null;
 	}
 	
-	public static boolean isRunning() {
-		return running;
+	@Override
+	public void onProviderDisabled(java.lang.String provider) {
+		// Auto-generated method stub
+	}
+
+	@Override
+	public void onProviderEnabled(java.lang.String provider) {
+		// Auto-generated method stub
+	}
+
+	@Override
+	public void onStatusChanged(java.lang.String provider, int status,
+			Bundle extras) {
+		// Auto-generated method stub
 	}
 }
