@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
@@ -17,6 +18,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 
 /**
  * ShowAlarmActivity shows the DialogBox, plays the alarm sound and starts the phone's vibrator,
@@ -75,12 +77,15 @@ public class ShowAlarmActivity extends Activity implements
 		final int distance = getIntent().getExtras().getInt("distance");
 		this.alarmId = getIntent().getExtras().getInt("id");
 
+		// Get preferences
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		
 		// Create MediaPlayer
 		this.mp = new MediaPlayer();
 
 		// Set alarm sound
 		try {
-			mp.setDataSource(this, this.getAlertUri());
+			mp.setDataSource(this, this.getAlertUri(sharedPref));
 		} catch (Exception e) {
 		}
 
@@ -88,9 +93,23 @@ public class ShowAlarmActivity extends Activity implements
 		this.audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 		// Get instance of Vibrator from current Context
 		this.vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+		
+		// Check settings for vibrate / ringtone
+		final String vibratePref = sharedPref.getString(SettingsFragment.KEY_PREF_VIBRATE, getString(R.string.pref_vibrate_val_default));
+		final boolean shouldVibrate = !vibratePref.equals("never") && // if set to never, the alarm should not use vibrate
+				(		vibratePref.equals("always") || // if set to always -> vibrate
+						(this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE && vibratePref.equals("vibrate")) || // vibrate profile && vibrate in vibrate mode 
+						(this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && (vibratePref.equals("vibrate") || vibratePref.equals("normal"))) // normal profile && vibrate in vibrate or normal mode
+						);
+		final String soundPref = sharedPref.getString(SettingsFragment.KEY_PREF_SOUND, getString(R.string.pref_sound_val_default));
+		final boolean shouldSound = !soundPref.equals("never") && // never sound means no sound
+				(		soundPref.equals("always") || // always means always
+						(this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && vibratePref.equals("normal")) // normal profile && sound in normal mode
+						);
+
 
 		// only peep if phone is not in vibrate or silent mode
-		if (this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && soundStarted == false) {
+		if (shouldSound && soundStarted == false) {
 			mp.setAudioStreamType(AudioManager.STREAM_ALARM);
 			mp.setLooping(true);
 
@@ -104,8 +123,7 @@ public class ShowAlarmActivity extends Activity implements
 		}
 
 		// vibrate in silent/normal mode
-		if (vibrateStarted == false && (this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL
-				|| this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_VIBRATE)) {
+		if (shouldVibrate && vibrateStarted == false) {
 			// Start immediately
 			// Vibrate for 200 milliseconds
 			// Sleep for 100 milliseconds
@@ -138,7 +156,11 @@ public class ShowAlarmActivity extends Activity implements
 	 * 
 	 * @return
 	 */
-	private Uri getAlertUri() {
+	private Uri getAlertUri(SharedPreferences sharedPref) {
+		Uri u = Uri.parse(sharedPref.getString(SettingsFragment.KEY_PREF_SOUND_RINGTONE, getString(R.string.pref_sound_ringtone_val_default)));
+		if (null != u)
+			return u;
+		
 		final int[] alarmTypes = { RingtoneManager.TYPE_ALARM,
 				RingtoneManager.TYPE_NOTIFICATION,
 				RingtoneManager.TYPE_RINGTONE };

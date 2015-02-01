@@ -7,6 +7,7 @@
     <string name="add_location">Add new station</string>
     <string name="ic_action_new">Add</string>
     <string name="title_activity_add_location">AddLocationActivity</string>
+    <string name="title_activity_settings">Settings</string>
     <string name="add_location_name">Name</string>
     <string name="add">add</string>
     <string name="save">Save</string>
@@ -24,4 +25,44 @@
     <string name="show_alarm_text" formatted="false">Alarm for %s (%.1f km away)</string>
     <string name="err_no_active_station">No active station!</string>
 
+    <string name="pref_group_general_header">General</string>
+    <string name="pref_group_alarm_header">Alarm</string>
+    
+    <string name="pref_vibrate_header">Vibration</string>
+    <string name="pref_vibrate_val_default">vibrate</string>
+    <string-array name="pref_vibrate_values">
+        <item>never</item>
+        <item>vibrate</item>
+        <item>normal</item>
+        <item>always</item>
+    </string-array>
+    <string-array name="pref_vibrate_entries">
+        <item>Never</item>
+        <item>Only in profiles: vibrate and normal</item>
+        <item>Only in profile: normal</item>
+        <item>Always</item>
+    </string-array>
+    <string name="pref_vibrate_sum_never">Never using vibration</string>
+    <string name="pref_vibrate_sum_vibrate">Vibration only used in vibrate and normal profile</string>
+    <string name="pref_vibrate_sum_normal">Vibration only used in normal profile</string>
+    <string name="pref_vibrate_sum_always">Always using vibration</string>
+    
+    <string name="pref_sound_header">Sound</string>
+    <string name="pref_sound_val_default">normal</string>
+    <string-array name="pref_sound_values">
+        <item>never</item>
+        <item>normal</item>
+        <item>always</item>
+    </string-array>
+    <string-array name="pref_sound_entries">
+        <item>Never</item>
+        <item>Only in profile: normal</item>
+        <item>Always</item>
+    </string-array>
+    <string name="pref_sound_sum_never">Never playing a sound</string>
+    <string name="pref_sound_sum_normal">Ringtone is only used in normal profile</string>
+    <string name="pref_sound_sum_always">Always playing a ringtone</string>
+    
+    <string name="pref_sound_ringtone_header">Ringtone</string>
+    <string name="pref_sound_ringtone_val_default">content://settings/system/alarm_alert</string>
 </resources>

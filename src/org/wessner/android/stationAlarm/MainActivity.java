@@ -135,22 +135,31 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_add) {
-        	final Intent switchToAddStation = new Intent(
-					this, AddLocationActivity.class);
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle action bar item clicks here. The action bar will
+		// automatically handle clicks on the Home/Up button, so long
+		// as you specify a parent activity in AndroidManifest.xml.
+
+		switch (item.getItemId()) {
+		case R.id.action_add:
+			final Intent switchToAddStation = new Intent(this,
+					AddLocationActivity.class);
 			startActivityForResult(switchToAddStation, REQUEST_CODE);
 
-            return true;
-        }
-        
-        return super.onOptionsItemSelected(item);
-    }
+			return true;
+		case R.id.action_settings:
+			final Intent switchToSettings = new Intent(this,
+					SettingsActivity.class);
+			startActivity(switchToSettings);
+			
+			return true;
+		default:
+			// Should not happen
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
 
     /**
      * Starts the Alarm service
