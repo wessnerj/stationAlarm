@@ -20,5 +20,7 @@
     <string name="add_location_info">Hint: Use a long press to set a location.</string>
     <string name="add_location_distance">Distance</string>
     <string name="add_location_distance_value">(%3.1f km)</string>
+    <string name="add_location_marker_desc" formatted="false">Lat: %.6\nLon: %.6</string>
+    <string name="show_alarm_text" formatted="false">Alarm for %s (%.1f km away)</string>
 
 </resources>

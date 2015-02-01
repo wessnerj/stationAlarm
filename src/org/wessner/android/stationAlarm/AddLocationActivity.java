@@ -53,13 +53,50 @@ public class AddLocationActivity extends Activity implements OnClickListener,
 	 */
 	private int currentSeekBarValue = 1000;
 
+	/**
+	 * Current (selected) location.
+	 */
 	private Location selectedLocation;
 
+	/**
+	 * Manager for accessing stations database
+	 */
 	private StationManager sm;
-	
+
+	/**
+	 * Current Station (if any)
+	 */
 	private Station currentStation = null;
 
+	/**
+	 * EditText for stations' name
+	 */
+	private EditText etStationName;
+
+	/**
+	 * SeekBar for distance
+	 */
+	private SeekBar sbDistanceSB;
+
+	/**
+	 * TextView to show current distance value
+	 */
 	private TextView tvDistanceValue;
+
+	/**
+	 * Mapview with stations' location
+	 */
+	private MapView mvMap;
+
+	/**
+	 * MapController used for MapView
+	 */
+	private IMapController mapController;
+
+	/**
+	 * MapMarker for MapView
+	 */
+	private Marker mapMarker;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,47 +105,76 @@ public class AddLocationActivity extends Activity implements OnClickListener,
 
 		// Create StationManager
 		this.sm = new StationManager(new DataBaseHelper(this));
-		
-		// Get current station (if any)
-		int stationId = getIntent().getExtras().getInt("stationId");
-		if (stationId > 0)
-			this.currentStation = this.sm.get(stationId);
-		else
-			this.currentStation = null;
 
-		// Get the map view
-		final MapView v = (MapView) findViewById(R.id.mapview);
-		v.setTileSource(TileSourceFactory.MAPNIK);
-		v.setBuiltInZoomControls(true);
-		v.setMultiTouchControls(true);
-		v.setClickable(true);
+		// Get current station (if any), is only set for editing stations
+		this.currentStation = null;
+		Bundle extras = getIntent().getExtras();
+		if (null != extras) {
+			int stationId = extras.getInt("stationId");
+			if (stationId > 0)
+				this.currentStation = this.sm.get(stationId);
+		}
 
-		// Get map controller
-		final IMapController mapController = v.getController();
-		if (null == this.currentStation)
+		// Get view elements
+		this.etStationName = (EditText) findViewById(R.id.name_edit);
+		this.sbDistanceSB = (SeekBar) findViewById(R.id.seekBar1);
+		this.tvDistanceValue = (TextView) findViewById(R.id.value_distance);
+
+		// On click listener for save button
+		((Button) findViewById(R.id.save_button)).setOnClickListener(this);
+
+		// SeekBar properties
+		this.sbDistanceSB.setMax((SEEKBAR_MAX - SEEKBAR_MIN) / SEEKBAR_STEP);
+		this.sbDistanceSB.setOnSeekBarChangeListener(this);
+
+		// Set up MapView
+		this.setupMapView();
+
+		// Set values
+		if (null == this.currentStation) {
+			// Use default values for new station
+			this.currentSeekBarValue = 1000;
+
 			this.selectedLocation = getLastLocation();
-		else
-		{
+		} else {
+			// Use current stations'values
+			this.etStationName.setText(this.currentStation.name);
+
+			this.currentSeekBarValue = (int) this.currentStation.distance;
+
 			this.selectedLocation = new Location("custom");
 			this.selectedLocation.setLatitude(this.currentStation.lat);
 			this.selectedLocation.setLongitude(this.currentStation.lon);
+
+			this.setMapViewMarker(this.selectedLocation);
 		}
-		final GeoPoint gp = new GeoPoint(this.selectedLocation);
-		mapController.setZoom(13);
-		new Handler().postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				mapController.animateTo(gp);
-			}
-		}, 250);
 
-		mapController.animateTo(gp);
+		this.sbDistanceSB.setProgress((this.currentSeekBarValue - SEEKBAR_MIN)
+				/ SEEKBAR_STEP);
+		this.setMapViewLocation(this.selectedLocation);
+	}
 
-		final Marker locationMarker = new Marker(v);
-		locationMarker.setAlpha(0);
-		locationMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-		v.getOverlays().add(locationMarker);
+	/**
+	 * Sets up the MapView
+	 */
+	private void setupMapView() {
+		// Set MapView properties
+		this.mvMap = (MapView) findViewById(R.id.mapview);
+		this.mvMap.setTileSource(TileSourceFactory.MAPNIK);
+		this.mvMap.setBuiltInZoomControls(true);
+		this.mvMap.setMultiTouchControls(true);
+		this.mvMap.setClickable(true);
 
+		// Get Map controller
+		this.mapController = this.mvMap.getController();
+
+		// Set Location marker
+		this.mapMarker = new Marker(this.mvMap);
+		this.mapMarker.setAlpha(0);
+		this.mapMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+		this.mvMap.getOverlays().add(this.mapMarker);
+
+		// Setup touch overlay
 		Overlay touchOverlay = new Overlay(this) {
 			@Override
 			protected void draw(Canvas arg0, MapView arg1, boolean arg2) {
@@ -126,43 +192,54 @@ public class AddLocationActivity extends Activity implements OnClickListener,
 					selectedLocation.setLongitude(loc.getLongitude());
 				}
 
-				locationMarker.setTitle("Lat: " + loc.getLatitude() + "\nLon: "
-						+ loc.getLongitude());
-				locationMarker.setPosition(loc);
-				locationMarker.setAlpha(1.0f);
-				v.invalidate();
+				setMapViewMarker(selectedLocation);
 
 				return true;
 			}
 		};
 
-		OverlayManager om = v.getOverlayManager();
+		OverlayManager om = this.mvMap.getOverlayManager();
 		om.add(touchOverlay);
-		
-		if (null != this.currentStation)
-		{
-			locationMarker.setTitle("Lat: " + this.currentStation.lat + "\nLon: "
-					+ this.currentStation.lon);
-			GeoPoint loc = new GeoPoint(selectedLocation);
-			locationMarker.setPosition(loc);
-			locationMarker.setAlpha(1.0f);
-			v.invalidate();
-		}
+	}
 
-		Button saveButton = (Button) findViewById(R.id.save_button);
-		saveButton.setOnClickListener(this);
+	/**
+	 * Sets the MapView's center to location
+	 * 
+	 * @param loc
+	 */
+	private void setMapViewLocation(Location loc) {
+		if (null == loc)
+			return;
 
-		this.tvDistanceValue = (TextView) findViewById(R.id.value_distance);
+		final GeoPoint gp = new GeoPoint(loc);
+		this.mapController.setZoom(13);
+		new Handler().postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				mapController.animateTo(gp);
+			}
+		}, 250);
 
-		SeekBar sb = (SeekBar) findViewById(R.id.seekBar1);
-		sb.setMax((SEEKBAR_MAX - SEEKBAR_MIN) / SEEKBAR_STEP);
-		sb.setOnSeekBarChangeListener(this);
-		if (null != this.currentStation)
-			this.currentSeekBarValue = (int) this.currentStation.distance;
-		sb.setProgress((this.currentSeekBarValue - SEEKBAR_MIN) / SEEKBAR_STEP);
-		
-		if (null != this.currentStation)
-			((TextView) findViewById(R.id.name_edit)).setText(this.currentStation.name);
+		this.mapController.animateTo(gp);
+	}
+
+	/**
+	 * Sets the Marker to given location
+	 * 
+	 * @param loc
+	 */
+	private void setMapViewMarker(Location loc) {
+		if (null == loc)
+			return;
+
+		GeoPoint gp = new GeoPoint(selectedLocation);
+		this.mapMarker.setTitle(String.format(
+				getString(R.string.add_location_marker_desc),
+				loc.getLatitude(), loc.getLongitude()));
+		this.mapMarker.setPosition(gp);
+		this.mapMarker.setAlpha(1.0f);
+
+		this.mvMap.invalidate();
 	}
 
 	@Override
@@ -182,6 +259,12 @@ public class AddLocationActivity extends Activity implements OnClickListener,
 		return super.onOptionsItemSelected(item);
 	}
 
+	/**
+	 * Get the last location of any location provider, or the center of Germany
+	 * if no location can be acquired.
+	 * 
+	 * @return
+	 */
 	private Location getLastLocation() {
 		LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		List<String> providers = lm.getProviders(true);
@@ -212,12 +295,12 @@ public class AddLocationActivity extends Activity implements OnClickListener,
 	public void onClick(View v) {
 		if (v.getId() == R.id.save_button) {
 			Station s;
-			
+
 			if (null == this.currentStation)
 				s = new Station();
 			else
 				s = this.currentStation;
-			
+
 			s.name = ((EditText) findViewById(R.id.name_edit)).getText()
 					.toString();
 			s.lat = selectedLocation.getLatitude();

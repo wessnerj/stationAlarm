@@ -124,9 +124,8 @@ public class ShowAlarmActivity extends Activity implements
 
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
-				"Alarm for " + name + " ("
-						+ String.format("%.1f", ((double) distance / 1000))
-						+ " km entfernt)").setCancelable(true)
+				String.format(getString(R.string.show_alarm_text), name,
+						distance / 1000.f)).setCancelable(true)
 				.setPositiveButton("Deaktivieren", this)
 				.setOnCancelListener(this);
 
