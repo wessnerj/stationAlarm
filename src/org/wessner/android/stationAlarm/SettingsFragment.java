@@ -28,6 +28,7 @@ import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
+import android.widget.Toast;
 
 /**
  * SettingsFragment: Managing the settings view.
@@ -35,6 +36,10 @@ import android.preference.RingtonePreference;
  * @author Joseph Wessner <joseph@wessner.org>
  */
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener, OnPreferenceChangeListener {
+	/**
+	 * Key for the language setting.
+	 */
+	public static final String KEY_PREF_LANG = "pref_lang";
 	/**
 	 * Key for the vibration setting.
 	 */
@@ -100,18 +105,31 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 		
 		String value = sharedPreferences.getString(key, "");
 		
-		if (key.equals(KEY_PREF_VIBRATE))
+		if (key.equals(KEY_PREF_LANG)) {
+			Toast.makeText(getActivity(), getString(R.string.settings_lang_changed), Toast.LENGTH_LONG).show();
+			this.setLanguageSummary(findPreference(KEY_PREF_LANG), key, value);
+		}
+		else if (key.equals(KEY_PREF_VIBRATE))
 			this.setVibrateSummary(findPreference(KEY_PREF_VIBRATE), key, value);
 		else if (key.equals(KEY_PREF_SOUND))
 			this.setSoundSummary(findPreference(KEY_PREF_SOUND), key, value);
 		else if (key.equals(KEY_PREF_SOUND_RINGTONE))
-			this.setSoundSummary(findPreference(KEY_PREF_SOUND_RINGTONE), key, value);
+			this.setSoundRingtoneSummary(findPreference(KEY_PREF_SOUND_RINGTONE), key, value);
 	}
 	
 	@Override
 	public boolean onPreferenceChange(Preference preference, Object newValue) {
 		this.setSoundRingtoneSummary(preference, KEY_PREF_SOUND_RINGTONE, (String) newValue);
 	    return true;
+	}
+	
+	private void setLanguageSummary(Preference pref, String key, String value) {
+		if (value.equals("default"))
+			pref.setSummary(getString(R.string.pref_lang_sum_default));
+		else if (value.equals("en"))
+			pref.setSummary(getString(R.string.pref_lang_sum_en));
+		else if (value.equals("de"))
+			pref.setSummary(getString(R.string.pref_lang_sum_de));
 	}
 	
 	/**
@@ -165,7 +183,8 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 	 * 
 	 * @param sharedPreferences
 	 */
-	private void setSummaries(SharedPreferences sharedPreferences) {	
+	private void setSummaries(SharedPreferences sharedPreferences) {
+		this.setLanguageSummary     (findPreference(KEY_PREF_LANG),           KEY_PREF_LANG,           sharedPreferences.getString(KEY_PREF_LANG,           getString(R.string.pref_lang_val_default)));
 		this.setVibrateSummary      (findPreference(KEY_PREF_VIBRATE),        KEY_PREF_VIBRATE,        sharedPreferences.getString(KEY_PREF_VIBRATE,        getString(R.string.pref_vibrate_val_default)));
 		this.setSoundSummary        (findPreference(KEY_PREF_SOUND),          KEY_PREF_SOUND,          sharedPreferences.getString(KEY_PREF_SOUND,          getString(R.string.pref_sound_val_default)));
 		this.setSoundRingtoneSummary(findPreference(KEY_PREF_SOUND_RINGTONE), KEY_PREF_SOUND_RINGTONE, sharedPreferences.getString(KEY_PREF_SOUND_RINGTONE, getString(R.string.pref_sound_ringtone_val_default)));

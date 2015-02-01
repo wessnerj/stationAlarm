@@ -18,7 +18,6 @@
 package org.wessner.android.stationAlarm.data;
 
 import java.util.ArrayList;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 

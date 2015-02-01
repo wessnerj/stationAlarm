@@ -5,6 +5,12 @@
         android:key="pref_group_alarm"
         android:title="@string/pref_group_general_header" >
 
+        <ListPreference
+            android:defaultValue="@string/pref_lang_val_default"
+            android:entries="@array/pref_lang_entries"
+            android:entryValues="@array/pref_lang_values"
+            android:key="pref_lang"
+            android:title="@string/pref_lang_header" />
         <!-- Add language selection -->
         <!-- Add quick start: click on station to activate and start -->
     </PreferenceCategory>

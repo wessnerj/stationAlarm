@@ -17,6 +17,8 @@
  */
 package org.wessner.android.stationAlarm;
 
+import java.util.Locale;
+
 import org.wessner.android.stationAlarm.data.DataBaseHelper;
 import org.wessner.android.stationAlarm.data.Station;
 import org.wessner.android.stationAlarm.data.StationAdapter;
@@ -24,7 +26,10 @@ import org.wessner.android.stationAlarm.data.StationManager;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -92,9 +97,15 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    	// Set the language first!
+        this.setLanguage();
         
+        // Call parent onCreate method
+        super.onCreate(savedInstanceState);
+        
+        // Set View after language!
+        setContentView(R.layout.activity_main);
+
         // Get references to used view elements and register listeners       
         this.layout = findViewById(R.id.linear_layout);
         this.startButton = (Button) findViewById(R.id.button_start);
@@ -121,6 +132,20 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
     	
     	// Change start/stop button accordingly
     	this.setServiceButtons();
+    }
+    
+    private void setLanguage() {
+    	// Set language according to settings
+    	SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+    	String language = sharedPref.getString(SettingsFragment.KEY_PREF_LANG, getString(R.string.pref_lang_val_default));
+    	if (!language.equals("default")) {
+    		Locale locale = new Locale(language);
+    		Locale.setDefault(locale);
+    		Configuration config = new Configuration();
+    		config.locale = locale;
+    		getBaseContext().getResources().updateConfiguration(config,
+    		      getBaseContext().getResources().getDisplayMetrics());
+    	}
     }
     
     /**

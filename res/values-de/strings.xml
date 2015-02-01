@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Station Alarm</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="add_location">Neue Station hinzufügen</string>
+    <string name="ic_action_new">Neu</string>
+    <string name="title_activity_add_location">Station bearbeiten</string>
+    <string name="title_activity_settings">Einstellungen</string>
+    <string name="add_location_name">Name</string>
+    <string name="add">neu</string>
+    <string name="save">Speichern</string>
+    <string name="alarms_active">Alarm aktiv</string>
+    <string name="start">StationAlarm starten</string>
+    <string name="activate">Aktivieren</string>
+    <string name="deactivate">Deaktivieren</string>
+    <string name="delete">Löschen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="stop">StationAlarm stoppen</string>
+    <string name="add_location_info">Hinweis: Ort wird durch langes Drücken gesetzt.</string>
+    <string name="add_location_distance">Entfernung</string>
+    <string name="add_location_distance_value">(%3.1f km)</string>
+    <string name="add_location_marker_desc" formatted="false">Lat: %.6f\nLon: %.6f</string>
+    <string name="show_alarm_text" formatted="false">Alarm für %s (%.1f km entfernt)</string>
+    <string name="err_no_active_station">Keine aktive Station vorhanden!</string>
+    
+    <string name="settings_lang_changed">Zum Ändern der Sprache ist ein App-Neustart erforderlich!</string>
+
+    <string name="pref_group_general_header">Allgemein</string>
+    <string name="pref_group_alarm_header">Alarm</string>
+    
+    <string name="pref_lang_header">Sprache</string>
+    <string name="pref_lang_val_default">default</string>
+    <string-array name="pref_lang_values">
+        <item>default</item>
+        <item>en</item>
+        <item>de</item>
+    </string-array>
+    <string-array name="pref_lang_entries">
+        <item>Standard</item>
+        <item>Englisch</item>
+        <item>Deutsch</item>
+    </string-array>
+    <string name="pref_lang_sum_default">System Standard</string>
+    <string name="pref_lang_sum_en">Englisch</string>
+    <string name="pref_lang_sum_de">Deutsch</string>
+    
+    <string name="pref_vibrate_header">Vibration</string>
+    <string name="pref_vibrate_val_default">vibrate</string>
+    <string-array name="pref_vibrate_values">
+        <item>never</item>
+        <item>vibrate</item>
+        <item>normal</item>
+        <item>always</item>
+    </string-array>
+    <string-array name="pref_vibrate_entries">
+        <item>Niemals</item>
+        <item>Nur in den Profilen: Normal und Vibration</item>
+        <item>Nur in dem Profil: Normal</item>
+        <item>Immer</item>
+    </string-array>
+    <string name="pref_vibrate_sum_never">Niemals</string>
+    <string name="pref_vibrate_sum_vibrate">Nur in den Profilen: Normal und Vibration</string>
+    <string name="pref_vibrate_sum_normal">Nur in dem Profil: Normal</string>
+    <string name="pref_vibrate_sum_always">Immer</string>
+    
+    <string name="pref_sound_header">Ton</string>
+    <string name="pref_sound_val_default">normal</string>
+    <string-array name="pref_sound_values">
+        <item>never</item>
+        <item>normal</item>
+        <item>always</item>
+    </string-array>
+    <string-array name="pref_sound_entries">
+        <item>Niemals</item>
+        <item>Nur in dem Profil: Normal</item>
+        <item>Immer</item>
+    </string-array>
+    <string name="pref_sound_sum_never">Niemals</string>
+    <string name="pref_sound_sum_normal">Nur in dem Profil: Normal</string>
+    <string name="pref_sound_sum_always">Immer</string>
+    
+    <string name="pref_sound_ringtone_header">Klingelton</string>
+    <string name="pref_sound_ringtone_val_default">content://settings/system/alarm_alert</string>
+</resources>
