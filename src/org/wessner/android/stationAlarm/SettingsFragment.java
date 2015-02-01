@@ -1,3 +1,20 @@
+/**
+ * stationAlarm - Android app which wakes you before you reach your target station.
+ * Copyright (C) 2015  Joseph Wessner <joseph@wessner.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.wessner.android.stationAlarm;
 
 import android.content.SharedPreferences;
@@ -12,12 +29,32 @@ import android.preference.PreferenceFragment;
 import android.preference.PreferenceManager;
 import android.preference.RingtonePreference;
 
+/**
+ * SettingsFragment: Managing the settings view.
+ * 
+ * @author Joseph Wessner <joseph@wessner.org>
+ */
 public class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener, OnPreferenceChangeListener {
+	/**
+	 * Key for the vibration setting.
+	 */
 	public static final String KEY_PREF_VIBRATE = "pref_vibrate";
+	/**
+	 * Key for the sound setting.
+	 */
 	public static final String KEY_PREF_SOUND = "pref_sound";
+	/**
+	 * Key for the sound/ringtone setting.
+	 */
 	public static final String KEY_PREF_SOUND_RINGTONE = "pref_sound_ringtone";
 	
+	/**
+	 * SharedPreferences for accessing the preferences
+	 */
 	private SharedPreferences sharedPref;
+	/**
+	 * RingtonePreference for accessing ringtone preference
+	 */
 	private RingtonePreference ringtonePref;
 	
 	@Override
@@ -49,6 +86,7 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 	public void onPause() {
 	    super.onPause();
 
+	    // Unregister as listener
 	    this.sharedPref.unregisterOnSharedPreferenceChangeListener(this);
 	    this.sharedPref = null;
 	    
@@ -76,6 +114,13 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 	    return true;
 	}
 	
+	/**
+	 * Sets the summary for vibrate setting.
+	 * 
+	 * @param pref
+	 * @param key
+	 * @param value
+	 */
 	private void setVibrateSummary(Preference pref,	String key, String value) {
 		if (value.equals("never"))
 			pref.setSummary(getString(R.string.pref_vibrate_sum_never));
@@ -87,6 +132,13 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 			pref.setSummary(getString(R.string.pref_vibrate_sum_always));
 	}
 
+	/**
+	 * Sets the summary for sound setting.
+	 * 
+	 * @param pref
+	 * @param key
+	 * @param value
+	 */
 	private void setSoundSummary(Preference pref,	String key, String value) {
 		if (value.equals("never"))
 			pref.setSummary(getString(R.string.pref_sound_sum_never));
@@ -96,17 +148,35 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 			pref.setSummary(getString(R.string.pref_sound_sum_always));
 	}
 	
+	/**
+	 * Sets the summary for ringtone setting.
+	 * 
+	 * @param pref
+	 * @param key
+	 * @param value
+	 */
 	private void setSoundRingtoneSummary(Preference pref, String key, String value) {
 		final String ringToneTitle = this.getRingtoneName(value);
 	    pref.setSummary(ringToneTitle);
 	}
 	
+	/**
+	 * Initializes all settings summaries.
+	 * 
+	 * @param sharedPreferences
+	 */
 	private void setSummaries(SharedPreferences sharedPreferences) {	
 		this.setVibrateSummary      (findPreference(KEY_PREF_VIBRATE),        KEY_PREF_VIBRATE,        sharedPreferences.getString(KEY_PREF_VIBRATE,        getString(R.string.pref_vibrate_val_default)));
 		this.setSoundSummary        (findPreference(KEY_PREF_SOUND),          KEY_PREF_SOUND,          sharedPreferences.getString(KEY_PREF_SOUND,          getString(R.string.pref_sound_val_default)));
 		this.setSoundRingtoneSummary(findPreference(KEY_PREF_SOUND_RINGTONE), KEY_PREF_SOUND_RINGTONE, sharedPreferences.getString(KEY_PREF_SOUND_RINGTONE, getString(R.string.pref_sound_ringtone_val_default)));
 	}
 	
+	/**
+	 * Get the ringtone name for given uri.
+	 * 
+	 * @param uri
+	 * @return
+	 */
 	private String getRingtoneName(String uri) {
 		Ringtone ringtone = RingtoneManager.getRingtone(getActivity(), Uri.parse(uri));
 		return ringtone.getTitle(getActivity());

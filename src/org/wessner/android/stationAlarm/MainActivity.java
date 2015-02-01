@@ -1,3 +1,20 @@
+/**
+ * stationAlarm - Android app which wakes you before you reach your target station.
+ * Copyright (C) 2015  Joseph Wessner <joseph@wessner.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.wessner.android.stationAlarm;
 
 import org.wessner.android.stationAlarm.data.DataBaseHelper;
@@ -8,7 +25,6 @@ import org.wessner.android.stationAlarm.data.StationManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -21,7 +37,11 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.Toast;
 
-
+/**
+ * MainActivity: Entry point for the App.
+ * 
+ * @author Joseph Wessner <joseph@wessner.org>
+ */
 public class MainActivity extends Activity implements OnItemLongClickListener, OnClickListener {
 	
 	/**

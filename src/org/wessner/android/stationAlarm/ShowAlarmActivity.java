@@ -1,3 +1,20 @@
+/**
+ * stationAlarm - Android app which wakes you before you reach your target station.
+ * Copyright (C) 2015  Joseph Wessner <joseph@wessner.org>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.wessner.android.stationAlarm;
 
 import org.wessner.android.stationAlarm.data.DataBaseHelper;
@@ -39,12 +56,16 @@ public class ShowAlarmActivity extends Activity implements
 	private int alarmId;
 	
 	/**
-	 * Is sound playing started?
+	 * Is sound playing already running?
 	 */
 	private static boolean soundStarted = false;
-	
+	/**
+	 * Is vibration already running?
+	 */
 	private static boolean vibrateStarted = false;
-	
+	/**
+	 * Is there already a alarm running?
+	 */
 	private static boolean alarmRunning = false;
 
 	/**
@@ -62,6 +83,7 @@ public class ShowAlarmActivity extends Activity implements
 	 */
 	private PowerManager.WakeLock wakeLock;
 
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
