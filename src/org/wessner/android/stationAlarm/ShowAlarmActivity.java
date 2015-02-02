@@ -172,6 +172,23 @@ public class ShowAlarmActivity extends Activity implements
 		AlertDialog alert = builder.create();
 		alert.show();
 	}
+	
+	@Override
+	public void onDestroy() {
+		// stop alarm sound and vibration
+		if (soundStarted && null != this.mp) {
+			this.mp.stop();
+			soundStarted = false;
+		}
+		if (vibrateStarted && null != this.vibrator) {
+			this.vibrator.cancel();
+			vibrateStarted = false;
+		}
+
+		// release wakeLock
+		if (null != this.wakeLock)
+			this.wakeLock.release();
+	}
 
 	/**
 	 * Get Uri for alarm sound.

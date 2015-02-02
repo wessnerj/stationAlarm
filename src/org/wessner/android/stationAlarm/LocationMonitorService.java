@@ -70,9 +70,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 	/**
 	 * Threshold for deciding if location update is accurate enough (default:
-	 * 100) [m]
+	 * 250) [m]
 	 */
-	private static final float ACCURACY_THRESHOLD = 100.f;
+	private static final float ACCURACY_THRESHOLD = 250.f;
 
 	/**
 	 * Maximum sleep window between two location requests (default: 5min) [ms]
@@ -326,7 +326,7 @@ public class LocationMonitorService extends Service implements LocationListener 
 			
 			if (dist2alarm < 0.f) {
 				// Station is less than s.distance away -> Call alarm
-				alertUser(results[0], s);
+				alertUser(results[0] > s.distance? s.distance: results[0], s);
 				return;
 			}
 
