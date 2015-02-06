@@ -33,9 +33,9 @@ import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.view.WindowManager;
 
 /**
  * ShowAlarmActivity shows the DialogBox, plays the alarm sound and starts the phone's vibrator,
@@ -77,11 +77,6 @@ public class ShowAlarmActivity extends Activity implements
 	 * Vibrator object to start/stop phone's vibrator
 	 */
 	private Vibrator vibrator;
-
-	/**
-	 * WakeLock while alarm is active
-	 */
-	private PowerManager.WakeLock wakeLock;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -156,12 +151,6 @@ public class ShowAlarmActivity extends Activity implements
 			vibrateStarted = true;
 		}
 
-		// Get wakeLock and turn display on
-		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		this.wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-				| PowerManager.ACQUIRE_CAUSES_WAKEUP, "ShowAlarmActivity");
-		this.wakeLock.acquire();
-
 		final AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(
 				String.format(getString(R.string.show_alarm_text), name,
@@ -171,6 +160,7 @@ public class ShowAlarmActivity extends Activity implements
 
 		AlertDialog alert = builder.create();
 		alert.show();
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 	}
 	
 	@Override
@@ -185,9 +175,9 @@ public class ShowAlarmActivity extends Activity implements
 			vibrateStarted = false;
 		}
 
-		// release wakeLock
-		if (null != this.wakeLock)
-			this.wakeLock.release();
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		super.onDestroy();
 	}
 
 	/**
@@ -238,8 +228,7 @@ public class ShowAlarmActivity extends Activity implements
 			vibrateStarted = false;
 		}
 
-		// release wakeLock
-		this.wakeLock.release();
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
 		// deactivate this alarm
 		StationManager stationManager = new StationManager(new DataBaseHelper(this));

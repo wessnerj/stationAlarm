@@ -113,6 +113,20 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * For access to stored stations
 	 */
 	private StationManager stationManager;
+	
+	private Runnable rAfterMinListening = new Runnable() {
+		@Override
+		public void run() {
+			afterMinListeningTime();
+		}
+	};
+		
+	private Runnable rAfterMaxListening = new Runnable() {
+		@Override
+		public void run() {
+			unregisterProviders();
+		}
+	};
 
 	/**
 	 * Init method
@@ -212,29 +226,23 @@ public class LocationMonitorService extends Service implements LocationListener 
 		this.updateWindowStartTime = System.currentTimeMillis();
 
 		// Call unregisterProviders after timeout
-		this.handler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				unregisterProviders();
-			}
-		}, MAX_UPDATE_WINDOW);
+		this.handler.postDelayed(rAfterMaxListening, MAX_UPDATE_WINDOW);
 		
 		// Check for usable location after min update window time
-		this.handler.postDelayed(new Runnable() {
-			@Override
-			public void run() {
-				afterMinListeningTime();
-			}
-		}, MIN_UPDATE_WINDOW);
+		this.handler.postDelayed(rAfterMinListening, MIN_UPDATE_WINDOW);
 	}
 
 	/**
 	 * Unregister itself from getting location updates and check for alarms
 	 * using best location estimate.
 	 */
-	private void unregisterProviders() {
+	private synchronized void unregisterProviders() {
 		// don't get any updates und location changes anymore
 		this.locationManager.removeUpdates(this);
+		
+		// Remove handler callbacks
+		this.handler.removeCallbacks(rAfterMinListening);
+		this.handler.removeCallbacks(rAfterMaxListening);
 
 		// check for alarms with best location estimate
 		checkForAlarm();
