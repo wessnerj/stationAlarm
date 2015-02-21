@@ -35,7 +35,7 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 	/**
 	 * Version of database, must be increased with every update
 	 */
-	private static final int DATABASE_VERSION = 4;
+	private static final int DATABASE_VERSION = 5;
 	
 	/**
 	 * Name of the default PRIMARY KEY
@@ -70,11 +70,19 @@ public class DataBaseHelper extends SQLiteOpenHelper {
 				+ "created datetime, "
 				+ "modified datetime)"
 				);
+		db.execSQL("CREATE TABLE log ("
+				+ "_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+				+ "type varchar(1), "
+				+ "tag varchar(255), "
+				+ "msg text, "
+				+ "date datetime)"
+				);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		db.execSQL("DROP TABLE IF EXISTS stations");
+		db.execSQL("DROP TABLE IF EXISTS log");
 		this.onCreate(db);
 	}
 	

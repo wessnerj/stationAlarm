@@ -20,6 +20,7 @@ package org.wessner.android.stationAlarm;
 import java.util.ArrayList;
 
 import org.wessner.android.stationAlarm.data.DataBaseHelper;
+import org.wessner.android.stationAlarm.data.Logger;
 import org.wessner.android.stationAlarm.data.Station;
 import org.wessner.android.stationAlarm.data.StationManager;
 
@@ -117,6 +118,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	private Runnable rAfterMinListening = new Runnable() {
 		@Override
 		public void run() {
+			Logger.d("LocationMonitorService", "rAfterMinListening");
+			
 			afterMinListeningTime();
 		}
 	};
@@ -124,6 +127,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	private Runnable rAfterMaxListening = new Runnable() {
 		@Override
 		public void run() {
+			Logger.d("LocationMonitorService", "rAfterMaxListening");
+			
 			unregisterProviders();
 		}
 	};
@@ -132,6 +137,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * Init method
 	 */
 	public void onCreate() {
+		Logger.d("LocationMonitorService", "onCreate");
+		
 		// Initialize AlarmManger, LocationManager, PowerManger and WakeLock
 		this.stationManager = new StationManager(new DataBaseHelper(this));
 		this.locationManager = (LocationManager) this
@@ -146,6 +153,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 */
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		super.onStartCommand(intent, flags, startId);
+		
+		Logger.d("LocationMonitorService", "onStartCommand");
 
 		// aquire wakeLock
 		this.wakeLock.acquire();
@@ -180,6 +189,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * Cleanup and stopping itself (service)
 	 */
 	private void quit() {
+		Logger.d("LocationMonitorService", "quit");
+		
 		this.handler.removeCallbacksAndMessages(null);
 		this.stopSelf();
 	}
@@ -188,6 +199,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * Service's shutdown handler
 	 */
 	public void onDestroy() {
+		Logger.d("LocationMonitorService", "onDestroy");
+		
 		// don't get any updates und location changes anymore
 		this.locationManager.removeUpdates(this);
 
@@ -204,6 +217,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * Additionally use best last known location as current location.
 	 */
 	private void registerProviders() {
+		Logger.d("LocationMonitorService", "registerProviders");
+		
 		java.util.List<String> providers = this.locationManager
 				.getAllProviders();
 
@@ -237,6 +252,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * using best location estimate.
 	 */
 	private synchronized void unregisterProviders() {
+		Logger.d("LocationMonitorService", "unregisterProviders");
+		
 		// don't get any updates und location changes anymore
 		this.locationManager.removeUpdates(this);
 		
@@ -253,6 +270,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * MIN_UPDATE_WINDOW
 	 */
 	private void afterMinListeningTime() {
+		Logger.d("LocationMonitorService", "afterMinListeningTime");
+		
 		// Check for alarms, if there was a accurate enough location update
 		// during this window
 		if (locationReceivedInWindow
@@ -266,6 +285,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * @param location	New location
 	 */
 	public void onLocationChanged(Location location) {
+		Logger.d("LocationMonitorService", "onLocationChanged");
+		
 		// Store location, if it is the first one in window or better than the
 		// last one
 		if (!locationReceivedInWindow
@@ -291,6 +312,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 *            Alarm Object
 	 */
 	private void alertUser(final float distance, final Station station) {
+		Logger.d("LocationMonitorService", "alertUser");
+		
 		final Intent dialogIntent = new Intent(getBaseContext(),
 				ShowAlarmActivity.class);
 		dialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -305,6 +328,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * Check current position is within the distance radius of an active location alert.
 	 */
 	private void checkForAlarm() {
+		Logger.d("LocationMonitorService", "checkForAlarm");
+		
 		// Check if there is a location available
 		if (null == this.lastLocation) {
 			// Register again for location updates and do nothing for now ..

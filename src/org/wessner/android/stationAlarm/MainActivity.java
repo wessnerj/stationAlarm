@@ -20,6 +20,7 @@ package org.wessner.android.stationAlarm;
 import java.util.Locale;
 
 import org.wessner.android.stationAlarm.data.DataBaseHelper;
+import org.wessner.android.stationAlarm.data.Logger;
 import org.wessner.android.stationAlarm.data.Station;
 import org.wessner.android.stationAlarm.data.StationAdapter;
 import org.wessner.android.stationAlarm.data.StationManager;
@@ -102,6 +103,9 @@ public class MainActivity extends Activity implements OnItemLongClickListener, O
         
         // Call parent onCreate method
         super.onCreate(savedInstanceState);
+        
+        // Init Logger
+        Logger.init(this);
         
         // Set View after language!
         setContentView(R.layout.activity_main);
