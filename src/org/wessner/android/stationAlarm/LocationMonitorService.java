@@ -24,6 +24,7 @@ import org.wessner.android.stationAlarm.data.Logger;
 import org.wessner.android.stationAlarm.data.Station;
 import org.wessner.android.stationAlarm.data.StationManager;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -109,6 +110,11 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 * WakeLock to prevent the phone to go into sleep mode
 	 */
 	private PowerManager.WakeLock wakeLock;
+	
+	/**
+	 * AlarmManger to schedule repeating location checking
+	 */
+	private AlarmManager alarmManager;
 
 	/**
 	 * For access to stored stations
@@ -146,6 +152,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
 		this.wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
 				"AlarmService");
+		
+		this.alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 	}
 
 	/**
@@ -157,7 +165,7 @@ public class LocationMonitorService extends Service implements LocationListener 
 		Logger.d("LocationMonitorService", "onStartCommand");
 
 		// aquire wakeLock
-		this.wakeLock.acquire();
+		// this.wakeLock.acquire();
 
 		// PendingIntent to show app's main activity
 		Intent resultIntent = new Intent(this, MainActivity.class);
@@ -193,6 +201,10 @@ public class LocationMonitorService extends Service implements LocationListener 
 		
 		this.handler.removeCallbacksAndMessages(null);
 		this.stopSelf();
+		
+		// Shouldn't be necessary, but to be sure ..
+		if (null != this.wakeLock)
+			this.wakeLock.release();
 	}
 
 	/**
@@ -218,6 +230,9 @@ public class LocationMonitorService extends Service implements LocationListener 
 	 */
 	private void registerProviders() {
 		Logger.d("LocationMonitorService", "registerProviders");
+		
+		// First of all, aquire a wake lock to prevent device from going to sleep
+		wakeLock.acquire();
 		
 		java.util.List<String> providers = this.locationManager
 				.getAllProviders();
@@ -263,6 +278,10 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 		// check for alarms with best location estimate
 		checkForAlarm();
+		
+		// Release wakeLock to allow device to go to sleep
+		Logger.d("LocationMonitorService", "Release wakeLock");
+		wakeLock.release();
 	}
 	
 	/**
@@ -378,13 +397,16 @@ public class LocationMonitorService extends Service implements LocationListener 
 
 		// No user alert happened, but at least one station is still active
 		// -> Go to sleep and wait for new locations
-		this.handler.postDelayed(new Runnable() {
-			public void run() {
-				registerProviders();
-			}
-		}, timeToAlarm);
+		Intent intent = new Intent(this, LocationMonitorService.class);
+		PendingIntent pintent = PendingIntent.getService(this, 0, intent, 0);
+		this.alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + timeToAlarm, pintent);
+//		this.handler.postDelayed(new Runnable() {
+//			public void run() {
+//				registerProviders();
+//			}
+//		}, timeToAlarm);
 	}
-
+	
 	/**
 	 * Determines whether one Location reading is better than the current
 	 * Location fix
