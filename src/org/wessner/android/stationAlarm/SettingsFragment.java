@@ -52,6 +52,10 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 	 * Key for the sound/ringtone setting.
 	 */
 	public static final String KEY_PREF_SOUND_RINGTONE = "pref_sound_ringtone";
+	/**
+	 * Key for log setting.
+	 */
+	public static final String KEY_PREF_LOG = "pref_log";
 	
 	/**
 	 * SharedPreferences for accessing the preferences
@@ -102,6 +106,9 @@ public class SettingsFragment extends PreferenceFragment implements OnSharedPref
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
+		
+		if (KEY_PREF_LOG.equals(key))
+			return; // Nothing to do for bool settings
 		
 		String value = sharedPreferences.getString(key, "");
 		

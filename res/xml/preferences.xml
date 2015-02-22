@@ -2,7 +2,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <PreferenceCategory
-        android:key="pref_group_alarm"
+        android:key="pref_group_general"
         android:title="@string/pref_group_general_header" >
 
         <ListPreference
@@ -11,7 +11,12 @@
             android:entryValues="@array/pref_lang_values"
             android:key="pref_lang"
             android:title="@string/pref_lang_header" />
-        <!-- Add language selection -->
+        
+        <CheckBoxPreference 
+            android:defaultValue="true"
+            android:key="pref_log"
+            android:title="@string/pref_log_header"
+            />
         <!-- Add quick start: click on station to activate and start -->
     </PreferenceCategory>
     <PreferenceCategory

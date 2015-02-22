@@ -21,9 +21,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import org.wessner.android.stationAlarm.SettingsFragment;
+
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
@@ -46,7 +50,7 @@ public class Logger {
 	 * Access to database
 	 */
 	static private DataBaseHelper dbh = null;
-	
+
 	/**
 	 * Link to Context
 	 */
@@ -61,6 +65,8 @@ public class Logger {
 	{
 		Logger.context = context;
 		Logger.dbh = new DataBaseHelper(context);
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+		bLogDB = sharedPref.getBoolean(SettingsFragment.KEY_PREF_LOG, true);
 	}
 	
 	/**

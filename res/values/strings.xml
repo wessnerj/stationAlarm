@@ -82,4 +82,5 @@
     
     <string name="pref_sound_ringtone_header">Ringtone</string>
     <string name="pref_sound_ringtone_val_default">content://settings/system/alarm_alert</string>
+    <string name="pref_log_header">Store log data</string>
 </resources>
