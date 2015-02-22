@@ -204,7 +204,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 		
 		// Shouldn't be necessary, but to be sure ..
 		if (null != this.wakeLock)
-			this.wakeLock.release();
+			if (this.wakeLock.isHeld())
+				this.wakeLock.release();
 	}
 
 	/**
@@ -217,7 +218,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 		this.locationManager.removeUpdates(this);
 
 		// release wakeLock
-		this.wakeLock.release();
+		if (this.wakeLock.isHeld())
+			this.wakeLock.release();
 
 		super.onDestroy();
 
@@ -281,7 +283,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 		
 		// Release wakeLock to allow device to go to sleep
 		Logger.d("LocationMonitorService", "Release wakeLock");
-		wakeLock.release();
+		if (this.wakeLock.isHeld())
+			wakeLock.release();
 	}
 	
 	/**
@@ -355,6 +358,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 			registerProviders();
 			return;
 		}
+		
+		Logger.d("LocationMonitorService", "Using location: " + this.lastLocation.toString());
 
 		// Get all active stations
 		ArrayList<Station> stations = this.stationManager.getAllActive();
