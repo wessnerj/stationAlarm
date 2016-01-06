@@ -20,6 +20,7 @@ package org.wessner.android.stationAlarm;
 import org.wessner.android.stationAlarm.data.DataBaseHelper;
 import org.wessner.android.stationAlarm.data.Station;
 import org.wessner.android.stationAlarm.data.StationManager;
+import org.wessner.android.stationAlarm.data.Logger;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -121,20 +122,24 @@ public class ShowAlarmActivity extends Activity implements
 		final String soundPref = sharedPref.getString(SettingsFragment.KEY_PREF_SOUND, getString(R.string.pref_sound_val_default));
 		final boolean shouldSound = !soundPref.equals("never") && // never sound means no sound
 				(		soundPref.equals("always") || // always means always
-						(this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && vibratePref.equals("normal")) // normal profile && sound in normal mode
+						(this.audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL && soundPref.equals("normal")) // normal profile && sound in normal mode
 						);
 
 
 		// only peep if phone is not in vibrate or silent mode
 		if (shouldSound && soundStarted == false) {
+			Logger.d("ShowAlarmActivity", "Try to play sound");
+
 			mp.setAudioStreamType(AudioManager.STREAM_ALARM);
 			mp.setLooping(true);
 
 			try {
 				mp.prepare();
 			} catch (Exception e) {
+				Logger.e("ShowAlarmActivity", "Exception in mp.prepare(): " + e.toString());
 			}
 
+			Logger.d("ShowAlarmActivity", "Start alarm sound");
 			mp.start();
 			soundStarted = true;
 		}

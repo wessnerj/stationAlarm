@@ -17,6 +17,7 @@
  */
 package org.wessner.android.stationAlarm;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 
 import org.wessner.android.stationAlarm.alarmHelper.AlarmHelper;
@@ -381,13 +382,15 @@ public class LocationMonitorService extends Service implements LocationListener 
 			registerProviders();
 			return;
 		}
-		
+
 		Logger.d("LocationMonitorService", "Using location: " + this.lastLocation.toString());
+		Logger.d("LocationMonitorService", "Location time: " + DateFormat.getDateTimeInstance().format(this.lastLocation.getTime()));
 
 		// Get all active stations
 		ArrayList<Station> stations = this.stationManager.getAllActive();
 		if (stations.size() < 1) {
 			// No active station -> stop service
+			Logger.d("LocationMonitorService", "No active station -> stop service");
 			this.quit();
 			return;
 		}
@@ -406,6 +409,7 @@ public class LocationMonitorService extends Service implements LocationListener 
 			
 			if (dist2alarm < 0.f) {
 				// Station is less than s.distance away -> Call alarm
+				Logger.d("LocationMonitorService", "alertUser: " + dist2alarm);
 				alertUser(results[0] > s.distance? s.distance: results[0], s);
 				return;
 			}
@@ -422,6 +426,8 @@ public class LocationMonitorService extends Service implements LocationListener 
 		if (timeToAlarm > MAX_SLEEP_WINDOW)
 			timeToAlarm = MAX_SLEEP_WINDOW; // Never sleep longer than
 											// MAX_SLEEP_WINDOW
+
+		Logger.d("LocationMonitorService", "closestDist: " + closest + "m, nextAlarm in: " + timeToAlarm + "s");
 
 		// No user alert happened, but at least one station is still active
 		// -> Go to sleep and wait for new locations

@@ -92,6 +92,30 @@ public class Logger {
 		SQLiteDatabase db = dbh.getWritableDatabase();
 		db.insert("log", null, cv);
 	}
+
+	/**
+	 * Error log message.
+	 *
+	 * @param tag	Used to identify the source of a log message. It usually identifies the class or activity where the log call occurs.
+	 * @param msg	The message you would like logged.
+	 */
+	public static void e(String tag, String msg)
+	{
+		if (bLogcat)	// Call standard Log.d
+			Log.e(tag, msg);
+
+		if (null == dbh || !bLogDB)
+			return;
+
+		// Store log to database
+		ContentValues cv = new ContentValues();
+		cv.put("type", "e");
+		cv.put("tag", tag);
+		cv.put("msg", msg);
+		cv.put("date", getDateTime());
+		SQLiteDatabase db = dbh.getWritableDatabase();
+		db.insert("log", null, cv);
+	}
 	
 	/**
 	 * Get current dateTime for SQLite
