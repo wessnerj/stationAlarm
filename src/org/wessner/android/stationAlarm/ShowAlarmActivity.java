@@ -36,6 +36,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.view.Window;
 import android.view.WindowManager;
 
 /**
@@ -90,6 +91,9 @@ public class ShowAlarmActivity extends Activity implements
 		}
 		alarmRunning = true;
 
+		// "Disable" lock screen
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+
 		// Get necessary information from intent
 		final String name = getIntent().getExtras().getString("name");
 		final int distance = getIntent().getExtras().getInt("distance");
@@ -105,6 +109,7 @@ public class ShowAlarmActivity extends Activity implements
 		try {
 			mp.setDataSource(this, this.getAlertUri(sharedPref));
 		} catch (Exception e) {
+			Logger.e("ShowAlarmActivity", "mp.setDataSource(..) failed: " + e.toString());
 		}
 
 		// Get instance of AudioManager from current Context
@@ -127,7 +132,7 @@ public class ShowAlarmActivity extends Activity implements
 
 
 		// only peep if phone is not in vibrate or silent mode
-		if (shouldSound && soundStarted == false) {
+		if (shouldSound && !soundStarted) {
 			Logger.d("ShowAlarmActivity", "Try to play sound");
 
 			mp.setAudioStreamType(AudioManager.STREAM_ALARM);
@@ -145,7 +150,7 @@ public class ShowAlarmActivity extends Activity implements
 		}
 
 		// vibrate in silent/normal mode
-		if (shouldVibrate && vibrateStarted == false) {
+		if (shouldVibrate && !vibrateStarted) {
 			// Start immediately
 			// Vibrate for 200 milliseconds
 			// Sleep for 100 milliseconds
@@ -188,7 +193,7 @@ public class ShowAlarmActivity extends Activity implements
 	/**
 	 * Get Uri for alarm sound.
 	 * 
-	 * @return
+	 * @return URI for alarm sound
 	 */
 	private Uri getAlertUri(SharedPreferences sharedPref) {
 		Uri u = Uri.parse(sharedPref.getString(SettingsFragment.KEY_PREF_SOUND_RINGTONE, getString(R.string.pref_sound_ringtone_val_default)));
